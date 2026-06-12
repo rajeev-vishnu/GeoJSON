@@ -1,0 +1,24 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade (str | None, f-strings, etc.)
+    "B",    # flake8-bugbear (mutable defaults, etc.)
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "PERF", # perflint (sets for membership, etc.)
+    "D",    # pydocstyle
+]

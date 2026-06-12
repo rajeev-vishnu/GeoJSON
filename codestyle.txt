@@ -1,0 +1,20 @@
+Code Style:
+Line length: 120 characters
+Quotes: Double quotes
+Indent: 4 spaces
+Line endings: LF
+Encoding: UTF-8
+Naming:
+Follow PEP 8 naming conventions.
+Avoid shortened names like hf, c, tmp, res, obj. Single-letter variable names are only acceptable in conventional cases (e.g. simple loop indices i, j, or mathematical code). Avoid domain-specific abbreviations in variable names (e.g. usr_ for "user", "psl" for "portfolio_sponsor_links") — always spell out the full concept.
+When assigning the return value of a function to a variable, name the variable after what the function returns — mirroring the function name where possible (e.g. linkedin_url = get_linkedin_url(...), profiles_query = get_profiles_query(...)). Avoid generic names like result or data.
+Type hints: All functions must have type hints, including return types. Use modern syntax (str | None, not Optional[str]).
+String interpolation: Always prefer f-strings over % formatting or .format()
+Imports: Sorted by isort with black profile; trailing commas on multi-line. Only use inline/local imports inside functions when necessary to avoid circular dependencies or reduce Lambda cold-start times — otherwise all imports go at the top of the file.
+Keyword arguments: Use keyword arguments for all function calls with more than one argument. The only exceptions are positional-only parameters (e.g. builtins like print()).
+Function ordering: Public/entry-point functions come first; private helper functions are placed below the functions that call them, not above.
+Blank lines after dedent: When the indentation level decreases (e.g. after a with block, for loop, or if branch), add a blank line before the next statement at the outer level.
+Mutable default arguments: Never use mutable objects as default argument values. Use None as the default and initialise inside the function body, or use Field(default_factory=...) for Pydantic models.
+Nesting depth: Avoid more than 3 levels of indentation. Refactor into smaller functions or use early returns to reduce nesting.
+Function length: Keep functions under ~100 lines. Break long functions into smaller, single-purpose helpers to improve readability and testability.
+Performance: Avoid repeating expensive operations inside loops. Use sets (not lists) for membership checks.
