@@ -1,4 +1,5 @@
 """Test settings. Used by pytest via DJANGO_SETTINGS_MODULE in pyproject.toml."""
+
 from .base import *  # noqa: F401,F403
 
 DEBUG = False

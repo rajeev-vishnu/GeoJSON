@@ -1,4 +1,5 @@
 """Tests for the custom security headers middleware."""
+
 from __future__ import annotations
 
 from typing import Any

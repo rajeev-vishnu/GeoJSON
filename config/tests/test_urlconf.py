@@ -1,4 +1,5 @@
 """Tests for config/urls.py routing structure."""
+
 from __future__ import annotations
 
 from contextlib import suppress

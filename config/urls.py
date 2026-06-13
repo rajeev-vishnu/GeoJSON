@@ -8,6 +8,7 @@ Routes are mounted at three prefixes:
 The Django admin URL is intentionally absent in v1; see the overview
 spec's out-of-scope list.
 """
+
 from django.urls import include, path
 
 urlpatterns = [

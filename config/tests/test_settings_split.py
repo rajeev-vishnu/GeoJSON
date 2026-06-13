@@ -1,4 +1,5 @@
 """Tests for the settings package split (base, dev, prod, test)."""
+
 from __future__ import annotations
 
 import importlib
@@ -53,9 +54,7 @@ def test_base_minimum_length_validator_uses_eight() -> None:
     """The hard floor for password length is 8."""
     base = _reload_settings("config.settings.base")
     minimum_length = next(
-        validator
-        for validator in base.AUTH_PASSWORD_VALIDATORS
-        if validator["NAME"].endswith("MinimumLengthValidator")
+        validator for validator in base.AUTH_PASSWORD_VALIDATORS if validator["NAME"].endswith("MinimumLengthValidator")
     )
 
     assert minimum_length["OPTIONS"]["min_length"] == 8
@@ -65,11 +64,13 @@ def test_base_drf_uses_jwt_authentication() -> None:
     """The default DRF auth class is JWTAuthentication (no Session)."""
     base = _reload_settings("config.settings.base")
 
-    assert "rest_framework_simplejwt.authentication.JWTAuthentication" in (
-        base.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]
+    assert (
+        "rest_framework_simplejwt.authentication.JWTAuthentication"
+        in (base.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"])
     )
-    assert "rest_framework.authentication.SessionAuthentication" not in (
-        base.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]
+    assert (
+        "rest_framework.authentication.SessionAuthentication"
+        not in (base.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"])
     )
 
 

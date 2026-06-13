@@ -3,6 +3,7 @@
 The secret-key placeholder check is enforced at import time so a
 misconfigured deployment fails fast rather than booting insecurely.
 """
+
 from __future__ import annotations
 
 from django.core.exceptions import ImproperlyConfigured
@@ -15,8 +16,7 @@ _SECRET_KEY_PLACEHOLDER = "change-me-in-production-please-do-not-use"
 
 if SECRET_KEY == _SECRET_KEY_PLACEHOLDER:  # noqa: F405  (re-exported from base)
     raise ImproperlyConfigured(
-        "DJANGO_SECRET_KEY is set to the .env.example placeholder. "
-        "Set a real secret key in the deployment environment."
+        "DJANGO_SECRET_KEY is set to the .env.example placeholder. Set a real secret key in the deployment environment."
     )
 
 # --- Hardening -------------------------------------------------------------

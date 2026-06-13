@@ -4,6 +4,7 @@ Every other settings module imports from this one. Settings that vary
 between dev/prod/test are explicitly *not* defined here; they live in
 the corresponding module so the inheritance chain is obvious.
 """
+
 from __future__ import annotations
 
 import os
@@ -106,6 +107,8 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.environ.get("JWT_REFRESH_DAYS", "7"))),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": False,
+    "SIGNING_KEY": SECRET_KEY,
+    "ALGORITHM": "HS256",
 }
 
 CORS_ALLOWED_ORIGINS = [

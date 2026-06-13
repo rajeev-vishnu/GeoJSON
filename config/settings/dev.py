@@ -1,4 +1,5 @@
 """Local-development settings. The default in docker-compose and runserver."""
+
 from .base import *  # noqa: F401,F403
 
 DEBUG = True

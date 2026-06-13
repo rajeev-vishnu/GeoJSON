@@ -50,8 +50,7 @@ are all enforced via pre-commit — anything they catch should be fixed.
 
 ### Imports
 
-- Inline / local imports need to be strictly avoided.
-- If is unavoidable or is needed for lazy loading, reqest for explicit approval.
+- Inline / local imports need to be strictly avoided. If it is unavoidable or is needed for lazy loading, reqest for explicit approval.
 
 ### Function length
 

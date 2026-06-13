@@ -1,4 +1,5 @@
 """ASGI entrypoint. Not used in v1 (gunicorn runs WSGI) but provided for completeness."""
+
 import os
 
 from django.core.asgi import get_asgi_application
