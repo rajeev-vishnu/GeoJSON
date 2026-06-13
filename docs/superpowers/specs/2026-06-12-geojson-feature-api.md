@@ -294,7 +294,7 @@ The `user` fixture is auto-discovered from
 - `test_search_uses_trigram_index` — runs `EXPLAIN` against
   `SELECT id FROM features WHERE properties->>'name' ILIKE '%foo%'`
   and asserts the plan contains
-  `Bitmap Index Scan on features_properties_name_trgm_idx` (or
+  `Bitmap Index Scan on features_props_name_trgm_idx` (or
   `Index Scan` / `Index Only Scan` — any plan node that names the
   trigram index). The test runs against the seeded dataset, so the
   planner has enough rows to choose the index. This locks in the

@@ -39,6 +39,13 @@ def test_base_settings_module_imports_cleanly() -> None:
     assert "corsheaders" in base.INSTALLED_APPS
 
 
+def test_base_settings_include_gis_app() -> None:
+    """config.settings.base includes django.contrib.gis for GeoDjango support."""
+    base = _reload_settings("config.settings.base")
+
+    assert "django.contrib.gis" in base.INSTALLED_APPS
+
+
 def test_base_password_validators_match_spec() -> None:
     """All four NIST-aligned AUTH_PASSWORD_VALIDATORS are configured in order."""
     base = _reload_settings("config.settings.base")
@@ -75,10 +82,10 @@ def test_base_drf_uses_jwt_authentication() -> None:
 
 
 def test_base_database_uses_dj_database_url() -> None:
-    """DATABASES['default'] is built from DATABASE_URL via dj-database-url."""
+    """DATABASES['default'] is built from DATABASE_URL via dj-database-url and uses the PostGIS engine."""
     base = _reload_settings("config.settings.base")
 
-    assert base.DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql"
+    assert base.DATABASES["default"]["ENGINE"] == "django.contrib.gis.db.backends.postgis"
 
 
 def test_base_csp_middleware_not_active() -> None:

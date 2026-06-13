@@ -25,9 +25,13 @@ FROM python:3.12-slim AS runtime
 
 WORKDIR /app
 
-# Runtime-only system deps (libpq for psycopg).
+# Runtime-only system deps (libpq for psycopg, GDAL/GEOS/PROJ for GeoDjango).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq5 \
+    && apt-get install -y --no-install-recommends \
+        libpq5 \
+        libgdal36 \
+        libproj25 \
+        libgeos-c1t64 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the installed packages and the project from the build stage.

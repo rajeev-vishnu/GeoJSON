@@ -1,20 +1,20 @@
 """Test settings. Used by pytest via DJANGO_SETTINGS_MODULE in pyproject.toml."""
 
+from __future__ import annotations
+
 from .base import *  # noqa: F401,F403
 
 DEBUG = False
 ALLOWED_HOSTS = ["*"]
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-# pytest-django creates and destroys a per-run test database. We use
-# SQLite here so the test suite is runnable without a running Postgres
-# (the production stack uses PostGIS; this in-memory engine is only for
-# the Foundation-level settings tests). The Feature Data Model spec
-# replaces this with the test PostGIS service from docker-compose for
-# tests that exercise the spatial types.
+# pytest-django creates a test_<dbname> database automatically during
+# test setup. The DATABASE_URL should point at the docker-compose `db`
+# service for local runs; in CI the workflow sets it to the service-
+# container URL (see CI spec §2).
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-    },
+    "default": dj_database_url.config(  # noqa: F405  (re-exported from base)
+        default="postgres://geojson:geojson@localhost:5432/geojson",
+        engine="django.contrib.gis.db.backends.postgis",
+    ),
 }

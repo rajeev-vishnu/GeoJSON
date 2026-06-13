@@ -23,7 +23,7 @@ typed columns).
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | `UUIDField` (PK, default `uuid4`) | Stable IDs. |
-| `geometry` | `GeometryField(srid=4326)` | Accepts all 6 GeoJSON geometry types. GiST spatial index. |
+| `geometry` | `GeometryField(srid=4326, spatial_index=False)` | Accepts all 7 GeoJSON geometry types. `spatial_index=False` is required because GeoDjango's `GeometryField` defaults to `spatial_index=True` (auto-creates a GiST index); the explicit `GistIndex` in `Meta.indexes` below is the intended one and a second auto-GiST would be redundant and break the index-count assertion in `test_indexes_exist`. |
 | `properties` | `JSONField(default=dict)` | The only "data" beyond geometry. Fully open `dict[str, JsonValue]`. |
 | `created_by` | `FK(User, on_delete=CASCADE)` | Audit trail only; no per-user ownership, so deletion takes the user's features with them. |
 | `created_at` | `DateTimeField(auto_now_add)` | |
@@ -43,26 +43,21 @@ typed columns).
 - `BTreeIndex(fields=["created_at", "id"])` — supports
   `?ordering=created_at|-created_at` with the same tiebreak
   guarantee.
-- Trigram GIN index on `properties->>'name'`, declared in the
-  model as
-
-  ```python
-  GinIndex(
-      OpClass(F("properties__name"), name="gin_trgm_ops"),
-      name="features_properties_name_trgm_idx",
-  )
-  ```
-
-  Django renders this as
-  `CREATE INDEX ... USING gin (("properties" ->> 'name') gin_trgm_ops);`.
-  The `OpClass` wrapper is required: Django's `GinIndex` does not
-  accept an `opclasses=` kwarg, so the operator class must be
-  attached per expression via `OpClass(expr, name="gin_trgm_ops")`
-  from `django.contrib.postgres.indexes`. Without the opclass the
-  index exists but the planner will not use it for `ILIKE` queries
-  and the search reverts to a Seq Scan. Supports the `?search=`
-  substring filter (`properties->>'name' ILIKE '%query%'`,
-  case-insensitive).
+- Trigram GIN index on `properties->>'name'`. **Django limitation:**
+  As of Django 5.1, `GinIndex(OpClass(F("properties__name"),
+  name="gin_trgm_ops"))` renders the wrong SQL — `IndexExpression.resolve_expression`
+  wraps the expression in `Func(...)` and `F("properties__name")` resolves
+  to `properties->'name'` (jsonb) instead of `properties->>'name'` (text),
+  producing
+  `CREATE INDEX ... USING gin ((("properties" -> 'name') gin_trgm_ops))`
+  which PostgreSQL rejects with a syntax error at `gin_trgm_ops`. The
+  correct SQL is
+  `CREATE INDEX "features_props_name_trgm_idx" ON "features_feature" USING gin (("properties" ->> 'name') gin_trgm_ops);`
+  (Django tickets #35262 and #35311 track the broken SQL; #35902 tracks
+  a related `--run-syncdb` crash.) **The migration therefore creates the
+  GIN trigram index via `RunSQL` instead of declaring it in
+  `Meta.indexes`.** The index name `features_props_name_trgm_idx` is
+  fixed and asserted by the test in §4.
 
 ### Trigram extension migration
 
@@ -72,10 +67,13 @@ migration via `TrigramExtension()` from
 `CreateModel` / `AddIndex` for `Feature` so the trigram opclass is
 available at index-creation time. The `TrigramExtension()` operation
 is idempotent (`CREATE EXTENSION IF NOT EXISTS pg_trgm`); the
-`postgis/postgis:16-3.4` Docker image ships with `pg_trgm` already
-installed, so the migration is a no-op in the standard environment
-and a hard failure in any environment that lacks it (intentional —
-we want to know, not silently fall back to a Seq Scan).
+`postgis/postgis:16-3.4` Docker image does **not** ship with
+`pg_trgm` pre-installed (only `plpgsql`, `postgis`, `postgis_topology`,
+`fuzzystrmatch`, and `postgis_tiger_geocoder` are pre-installed), so
+the migration actually creates the extension in the standard
+environment, and a hard failure in any environment that lacks the
+underlying Postgres package support (intentional — we want to know,
+not silently fall back to a Seq Scan).
 
 ### No `Meta.ordering`
 
@@ -158,5 +156,5 @@ quick option.
   present: `features_geometry_id` (GiST),
   `features_updated_at_id` (BTree),
   `features_created_at_id` (BTree), and
-  `features_properties_name_trgm_idx` (GIN with
+  `features_props_name_trgm_idx` (GIN with
   `gin_trgm_ops`).

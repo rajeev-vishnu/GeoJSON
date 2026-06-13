@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.gis",
     "corsheaders",
     "rest_framework",
     "accounts",
@@ -70,6 +71,7 @@ DATABASES = {
         default="postgres://geojson:geojson@db:5432/geojson",
         conn_max_age=600,
         conn_health_checks=True,
+        engine="django.contrib.gis.db.backends.postgis",
     ),
 }
 

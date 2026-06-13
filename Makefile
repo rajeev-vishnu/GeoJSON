@@ -15,7 +15,7 @@ seed:
 	$(COMPOSE) exec web python manage.py seed_features
 
 test:
-	$(COMPOSE) exec web pytest
+	$(COMPOSE) run --rm -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest
 
 lint:
 	$(COMPOSE) exec web ruff check .
