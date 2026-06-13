@@ -1,4 +1,5 @@
 """Application config for the features app."""
+
 from django.apps import AppConfig
 
 

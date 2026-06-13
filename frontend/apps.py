@@ -1,4 +1,5 @@
 """Application config for the frontend app."""
+
 from django.apps import AppConfig
 
 
