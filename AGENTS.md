@@ -7,11 +7,9 @@ and re-run until clean. A task is not done until pre-commit passes.
 On first run in a fresh clone, run `pre-commit install` first.
 
 Ruff (Python), Biome (JS), Prettier (HTML), and editorconfig (LF / UTF-8)
-are all enforced via pre-commit — anything they catch is automatically
-fixed or rejected. The rules below are the ones they do not enforce;
-follow them on top.
+are all enforced via pre-commit — anything they catch should be fixed.
 
-## Conventions not enforced by tooling
+## Python conventions
 
 ### Function calls
 
@@ -36,8 +34,9 @@ follow them on top.
 - Avoid more than 3 levels of indentation. Refactor into smaller
   functions or use early returns to reduce nesting.
 
-### Naming (beyond standard PEP 8)
+### Naming
 
+- Follow PEP 8 naming conventions.
 - Avoid shortened variable names: `hf`, `c`, `tmp`, `res`, `obj`, etc.
 - Single-letter variable names are only acceptable in conventional
   cases (simple loop indices, mathematical code).
@@ -51,13 +50,10 @@ follow them on top.
 
 ### Imports
 
-- Inline / local imports are only allowed when necessary to avoid
-  circular dependencies or to reduce Lambda cold-start times.
-  Otherwise, all imports go at the top of the file.
+- Inline / local imports need to be strictly avoided.
+- If is unavoidable or is needed for lazy loading, reqest for explicit approval.
 
-### Function length (soft)
+### Function length
 
 - Keep functions under ~100 lines. Break long functions into smaller,
   single-purpose helpers to improve readability and testability.
-  (Ruff's `PLR0915` enforces a stricter floor of 50 statements;
-  the ~100-line guideline is a soft ceiling on top of that.)

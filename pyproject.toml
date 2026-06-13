@@ -41,8 +41,6 @@ testpaths = ["accounts", "config", "features", "frontend"]
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-quote-style = "double"
-indent-style = "space"
 
 [tool.ruff.format]
 quote-style = "double"

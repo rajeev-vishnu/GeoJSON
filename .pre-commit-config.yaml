@@ -18,16 +18,17 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  - repo: https://github.com/biomejs/pre-commit
-    rev: v2.4.16
-    hooks:
-      - id: biome-check
-        additional_dependencies: ["@biomejs/biome@2.4.16"]
-
   - repo: local
     hooks:
+      - id: biome
+        name: biome (JS/JSON)
+        entry: bash -c 'npx --yes @biomejs/biome@2.5.0 check --write --files-ignore-unknown=true --no-errors-on-unmatched "$@"' --
+        language: system
+        types_or: [javascript, ts, json]
+        require_serial: true
+
       - id: prettier-html
         name: prettier (HTML)
-        entry: bash -c 'npx --yes prettier --write "$@"' --
+        entry: bash -c 'npx --yes prettier@3.8.4 --write "$@"' --
         language: system
         types: [html]
