@@ -1,0 +1,55 @@
+# ─── Secrets & local config ────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Python bytecode & build artifacts ─────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# ─── Test & coverage output ────────────────────────────────────────
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
+# ─── Venvs ──────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── IDE, editor, OS metadata ─────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ─── Dev-tool state & spec docs ───────────────────────────────────
+.opencode/
+docs/superpowers/
+
+# ─── Django runtime directories (created at runtime, not build) ──
+staticfiles/
+media/
+
+# ─── Config & linter artifacts (no runtime use) ───────────────────
+.git/
+.gitignore
+.gitattributes
+.pre-commit-config.yaml
+.prettierrc.json
+biome.json
+codestyle.txt
+.editorconfig
+.env.example
+AGENTS.md
+*.md

@@ -1,0 +1,53 @@
+# ─── Python bytecode & builds ───────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+
+# ─── Virtual environments ──────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Secrets & local config ────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Django ────────────────────────────────────────────────────────
+staticfiles/
+media/
+local_settings.py
+
+# ─── Logs & runtime data ───────────────────────────────────────────
+*.log
+*.pot
+*.sqlite3
+*.db
+
+# ─── Test & coverage output ────────────────────────────────────────
+coverage.xml
+*.cover
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# ─── Linter / formatter caches ─────────────────────────────────────
+.ruff_cache/
+.mypy_cache/
+
+# ─── IDE & editor ──────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ─── OS metadata ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── OpenCode CLI tool state (dev-machine-specific) ───────────────
+.opencode/
