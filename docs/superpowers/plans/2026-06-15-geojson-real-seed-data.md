@@ -54,21 +54,21 @@
 
 ---
 
-## Task 0: Wipe existing data from the web database
+## Task 0: Wipe existing `Feature` rows from the web database
 
 **Files:** none (one-time cleanup via Django shell)
 
-The web database currently holds data from earlier development: a
-`smoketest@example.com` user created during the E2E test, the random-
-coordinate features seeded by the old seeder, and any other test
-artifacts. The new seeding workflow writes fresh, real-coordinate
-data on top, so this task wipes everything first to guarantee the
-database is in a known-empty state before we begin.
+The web database currently holds the random-coordinate features
+seeded by the old seeder. The new seeding workflow writes fresh,
+real-coordinate data on top, so this task wipes the existing
+`Feature` rows first to guarantee the database is in a known-empty
+state before we begin.
 
 Note: the new `seed_features` command in Task 3 wipes `Feature` rows
-on every run, so the wipe here is a one-time belt-and-braces — it
-also clears `accounts_user` (which the seeder does not touch), so
-the database ends up empty of all rows before any task runs.
+on every run, so this task is a one-time belt-and-braces that also
+serves as a clean visual confirmation. **`accounts_user` rows are
+intentionally left alone** — the seeder doesn't touch them and the
+new workflow does not require a fresh user table.
 
 - [ ] **Step 1: Confirm the database is reachable**
 
@@ -76,7 +76,7 @@ Run: `docker compose exec web python -c "import django; django.setup(); from dja
 
 Expected: `ok`
 
-- [ ] **Step 2: Snapshot the current row counts**
+- [ ] **Step 2: Snapshot the current feature count**
 
 Run:
 ```bash
@@ -84,16 +84,14 @@ docker compose exec web python -c "
 import os, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
 django.setup()
-from accounts.models import User
 from features.models import Feature
-print('users:', User.objects.count())
 print('features:', Feature.objects.count())
 "
 ```
 
-Expected: a small handful of users (e.g. `users: 1`) and a thousand-ish features (e.g. `features: 1002`).
+Expected: a thousand-ish number (e.g. `features: 1002`).
 
-- [ ] **Step 3: Wipe all data**
+- [ ] **Step 3: Wipe all `Feature` rows**
 
 Run:
 ```bash
@@ -101,19 +99,16 @@ docker compose exec web python -c "
 import os, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
 django.setup()
-from accounts.models import User
 from features.models import Feature
-user_count = User.objects.count()
 feature_count = Feature.objects.count()
-User.objects.all().delete()
 Feature.objects.all().delete()
-print(f'wiped {user_count} users and {feature_count} features')
+print(f'wiped {feature_count} features')
 "
 ```
 
-Expected: `wiped N users and M features` (with N and M matching the snapshot from Step 2).
+Expected: `wiped N features` (where N matches the snapshot from Step 2).
 
-- [ ] **Step 4: Verify the database is empty**
+- [ ] **Step 4: Verify the `Feature` table is empty**
 
 Run:
 ```bash
@@ -121,15 +116,13 @@ docker compose exec web python -c "
 import os, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
 django.setup()
-from accounts.models import User
 from features.models import Feature
-assert User.objects.count() == 0, User.objects.count()
 assert Feature.objects.count() == 0, Feature.objects.count()
-print('database is empty')
+print('feature table is empty')
 "
 ```
 
-Expected: `database is empty`.
+Expected: `feature table is empty`.
 
 ---
 
