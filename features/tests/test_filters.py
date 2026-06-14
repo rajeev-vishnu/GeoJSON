@@ -1,13 +1,28 @@
-"""Tests for the bbox parser used by the seed command and the API filter."""
+"""Tests for the bbox parser and apply_bbox() helper used by the API filter."""
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
+from django.contrib.gis.geos import Point
 from rest_framework.exceptions import ValidationError
 
-from features.filters import parse_bbox
+from features.filters import apply_bbox, parse_bbox
+from features.models import Feature
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
+
+    from accounts.models import User
+
 
 pytestmark = pytest.mark.django_db
+
+
+def _point(longitude: float, latitude: float):
+    """Build a 4326 Point geometry."""
+    return Point(longitude, latitude, srid=4326)
 
 
 def test_parse_bbox_accepts_valid_input() -> None:
@@ -77,3 +92,41 @@ def test_parse_bbox_rejects_whitespace_only() -> None:
     """A whitespace-only string raises ValidationError."""
     with pytest.raises(ValidationError):
         parse_bbox(" , , , ")
+
+
+def test_apply_bbox_returns_full_queryset_when_bbox_is_none(user: User) -> None:
+    """When bbox is None, apply_bbox returns the queryset unchanged (no filter applied)."""
+    Feature.objects.create(geometry=_point(5.0, 52.0), properties={"name": "Inside"}, created_by=user)
+    Feature.objects.create(geometry=_point(-100.0, 40.0), properties={"name": "Outside"}, created_by=user)
+    queryset: QuerySet[Feature] = Feature.objects.all()
+
+    filtered_queryset = apply_bbox(queryset, raw_bbox=None)
+
+    assert filtered_queryset.query == queryset.query
+    assert filtered_queryset.count() == 2
+
+
+def test_apply_bbox_filters_to_intersecting_features(user: User) -> None:
+    """apply_bbox chains a filter(geometry__intersects=polygon) and keeps only inside features."""
+    Feature.objects.create(geometry=_point(5.0, 52.0), properties={"name": "Inside"}, created_by=user)
+    Feature.objects.create(geometry=_point(-100.0, 40.0), properties={"name": "Outside"}, created_by=user)
+
+    filtered_queryset = apply_bbox(Feature.objects.all(), raw_bbox="0,45,10,55")
+
+    assert filtered_queryset.count() == 1
+    assert filtered_queryset.first().properties["name"] == "Inside"
+
+
+def test_apply_bbox_returns_empty_when_no_intersections(user: User) -> None:
+    """A bbox disjoint from all features returns an empty queryset."""
+    Feature.objects.create(geometry=_point(5.0, 52.0), properties={"name": "Amsterdam"}, created_by=user)
+
+    filtered_queryset = apply_bbox(Feature.objects.all(), raw_bbox="-180,-90,-100,-80")
+
+    assert filtered_queryset.count() == 0
+
+
+def test_apply_bbox_propagates_validation_error(user: User) -> None:
+    """An invalid bbox string propagates DRF's ValidationError from parse_bbox()."""
+    with pytest.raises(ValidationError):
+        apply_bbox(Feature.objects.all(), raw_bbox="not-a-bbox")

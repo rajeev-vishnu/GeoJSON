@@ -7,11 +7,25 @@ defines the validation rules: exactly 4 comma-separated floats with
 in `[-90, 90]`. Bad input raises DRF's `ValidationError` so the seed
 command can re-wrap it as a `CommandError` and the API view can
 return a 400 response without additional translation.
+
+`apply_bbox()` is a thin wrapper that chains
+`filter(geometry__intersects=Polygon)` onto a queryset when the raw
+`?bbox=` query string is present, and returns the queryset
+unchanged when the param is missing. The view uses it from
+`FeatureViewSet.get_queryset()`.
 """
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+from django.contrib.gis.geos import Polygon
 from rest_framework.exceptions import ValidationError
+
+from features.models import Feature
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
 
 
 def parse_bbox(raw: str) -> tuple[float, float, float, float]:
@@ -41,3 +55,21 @@ def parse_bbox(raw: str) -> tuple[float, float, float, float]:
         raise ValidationError("bbox miny must be <= maxy")
 
     return min_x, min_y, max_x, max_y
+
+
+def apply_bbox(queryset: QuerySet[Feature], raw_bbox: str | None) -> QuerySet[Feature]:
+    """Chain a `geometry__intersects` filter onto `queryset` if `raw_bbox` is set.
+
+    When `raw_bbox` is `None` (the `?bbox=` query param is absent), the
+    queryset is returned unchanged. When it is set, it is parsed via
+    `parse_bbox()` (which raises DRF's `ValidationError` on bad input —
+    the view lets that propagate to a 400 response) and the queryset is
+    filtered to features whose geometry intersects a `Polygon` built
+    from the parsed bounds.
+    """
+    if raw_bbox is None:
+        return queryset
+
+    min_x, min_y, max_x, max_y = parse_bbox(raw_bbox)
+    polygon = Polygon.from_bbox((min_x, min_y, max_x, max_y))
+    return queryset.filter(geometry__intersects=polygon)
