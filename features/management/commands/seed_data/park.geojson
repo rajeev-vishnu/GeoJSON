@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[5.50, 52.00], [6.20, 52.00], [6.20, 52.40], [5.50, 52.40], [5.50, 52.00]]]}, "properties": {"name": "Veluwe"}},
+    {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[5.75, 51.95], [6.00, 51.95], [6.00, 52.10], [5.75, 52.10], [5.75, 51.95]]]}, "properties": {"name": "Hoge Veluwe"}},
+    {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[4.78, 52.30], [4.85, 52.30], [4.85, 52.34], [4.78, 52.34], [4.78, 52.30]]]}, "properties": {"name": "Amsterdamse Bos"}}
+  ]
+}

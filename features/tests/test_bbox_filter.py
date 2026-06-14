@@ -9,10 +9,10 @@
 - `test_invalid_bbox_min_greater_than_max` — `minx > maxx` → 400.
 - `test_bbox_omitted_returns_all` — no `bbox` param returns the full set, still paged.
 """
+
 from __future__ import annotations
 
 import pytest
-
 
 pytestmark = pytest.mark.django_db
 

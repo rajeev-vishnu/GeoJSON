@@ -9,10 +9,10 @@
   assert the `_audit` block matches the post timestamps and
   `created_by` is the requester's email.
 """
+
 from __future__ import annotations
 
 import pytest
-
 
 pytestmark = pytest.mark.django_db
 

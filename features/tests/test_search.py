@@ -4,10 +4,10 @@
 - `test_search_substring_match` — case-insensitive substring match on `properties.name`.
 - `test_search_no_match` — unknown substring returns empty `results`.
 """
+
 from __future__ import annotations
 
 import pytest
-
 
 pytestmark = pytest.mark.django_db
 

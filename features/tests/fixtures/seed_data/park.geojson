@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "Polygon", "coordinates": [[[4.0, 52.0], [4.5, 52.0], [4.5, 52.5], [4.0, 52.5], [4.0, 52.0]]]},
+      "properties": {"name": "TestPark"}
+    }
+  ]
+}

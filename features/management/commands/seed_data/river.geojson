@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[6.10, 51.80], [5.95, 51.95], [5.50, 51.95], [5.05, 51.95], [4.60, 51.90]]}, "properties": {"name": "Rijn"}},
+    {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[5.70, 50.78], [5.75, 51.10], [5.70, 51.50], [5.65, 51.75]]}, "properties": {"name": "Maas"}},
+    {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[6.00, 52.00], [6.10, 52.30], [6.15, 52.55]]}, "properties": {"name": "IJssel"}}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [4.90, 52.37]}, "properties": {"name": "Amsterdam"}},
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [4.48, 51.92]}, "properties": {"name": "Rotterdam"}},
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [4.30, 52.08]}, "properties": {"name": "Den Haag"}},
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.12, 52.09]}, "properties": {"name": "Utrecht"}},
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.47, 51.44]}, "properties": {"name": "Eindhoven"}}
+  ]
+}

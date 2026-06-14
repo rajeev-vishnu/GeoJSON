@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.05, 52.51]}, "properties": {"name": "Edam"}},
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.07, 52.50]}, "properties": {"name": "Volendam"}},
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [6.08, 52.74]}, "properties": {"name": "Giethoorn"}}
+  ]
+}

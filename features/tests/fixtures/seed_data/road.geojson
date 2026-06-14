@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "LineString", "coordinates": [[4.0, 52.0], [4.5, 52.5], [5.0, 53.0]]},
+      "properties": {"name": "TestRoad"}
+    }
+  ]
+}

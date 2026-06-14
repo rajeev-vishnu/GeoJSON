@@ -51,3 +51,7 @@ Thumbs.db
 
 # ─── OpenCode CLI tool state (dev-machine-specific) ───────────────
 .opencode/
+
+# ─── Node (optional local install for prettier/biome IDE support) ──
+node_modules/
+package-lock.json

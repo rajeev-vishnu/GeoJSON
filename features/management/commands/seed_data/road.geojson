@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[4.90, 52.37], [5.10, 52.16], [5.50, 52.25], [6.10, 52.22], [6.80, 52.30]]}, "properties": {"name": "A1"}},
+    {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[4.90, 52.37], [4.65, 52.10], [4.50, 51.85], [4.95, 51.55], [5.50, 51.45], [5.70, 51.00]]}, "properties": {"name": "A2"}},
+    {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[4.90, 52.37], [4.60, 52.20], [4.30, 52.08], [4.15, 51.95]]}, "properties": {"name": "A4"}}
+  ]
+}

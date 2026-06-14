@@ -1,0 +1,10 @@
+{
+  "name": "geojson-frontend-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local dev tooling pinned for the frontend. Pre-commit hooks use the pre-commit-managed node env; this file lets a developer `npm install` to run the same pinned versions manually for IDE integration.",
+  "devDependencies": {
+    "@biomejs/biome": "2.5.0",
+    "prettier": "3.8.4"
+  }
+}

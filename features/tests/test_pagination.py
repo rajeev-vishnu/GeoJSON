@@ -4,13 +4,13 @@
 page past the end returns 404, page=0 returns 400, and next/prev URLs
 preserve the bbox query string.
 """
+
 from __future__ import annotations
 
 import pytest
 from django.contrib.gis.geos import Point
 
 from features.models import Feature
-
 
 pytestmark = pytest.mark.django_db
 

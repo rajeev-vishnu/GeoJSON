@@ -1,63 +1,48 @@
-"""Seed the database with a deterministic synthetic dataset of vector features.
+"""Seed the database with a real-coordinate dataset of vector features.
 
-Run via `python manage.py seed_features` (or `make seed`). Re-running
-with the same `--seed` produces the exact same feature set
-byte-for-byte (modulo the assigned UUIDs and timestamps). See
-`docs/superpowers/specs/2026-06-12-geojson-seed.md` for the full
-specification.
+Run via `python manage.py seed_features` (or `make seed`). The seeder
+loads from `seed_data/*.geojson` (a bundle of OpenStreetMap-sourced
+features) and bulk-creates `Feature` rows. See
+`docs/superpowers/specs/2026-06-15-geojson-real-seed-data-design.md`
+for the full specification.
 """
 
 from __future__ import annotations
 
-import math
-import random
+import json
+from pathlib import Path
 from typing import Final
 
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import (
     GEOSGeometry,
-    LineString,
-    MultiLineString,
-    MultiPoint,
     MultiPolygon,
-    Point,
     Polygon,
 )
 from django.core.management.base import BaseCommand, CommandError
 
-from features.filters import parse_bbox
 from features.models import Feature
 
 UserModel = get_user_model()
 
-DEFAULT_BBOX: Final[tuple[float, float, float, float]] = (3.3, 50.7, 7.3, 53.55)
-"""The Netherlands in WGS84 (minx, miny, maxx, maxy).
+CATEGORY_COLORS: Final[dict[str, str]] = {
+    "city": "#e41a1c",
+    "town": "#fc8d62",
+    "road": "#ff7f00",
+    "river": "#377eb8",
+    "canal": "#1b9e77",
+    "rail": "#999999",
+    "park": "#4daf4a",
+    "lake": "#a6cee3",
+    "province": "#984ea3",
+    "nature_reserve": "#005500",
+    "country": "#21468B",
+}
+"""The single source of truth for category → color, applied to every Feature at seed time.
 
-Includes the mainland, the Wadden Islands, the Zeeland delta, and a
-small slice of the North Sea; it does not include German or Belgian
-land.
-"""
-
-DEFAULT_COUNT: Final[int] = 1000
-"""The default total number of randomly-generated features (excludes the curated outline)."""
-
-DEFAULT_SEED: Final[int] = 42
-"""The default PRNG seed. Re-running with this seed produces the same feature set."""
-
-BBOX_SAFETY_MARGIN: Final[float] = 0.05
-"""The random center point is kept this many degrees inside the bbox on every side."""
-
-COLOR_PALETTE: Final[tuple[str, ...]] = (
-    "#e41a1c",
-    "#377eb8",
-    "#4daf4a",
-    "#984ea3",
-    "#ff7f00",
-    "#21468B",
-)
-"""The small color palette the seed draws `properties.color` from.
-
-The NL-flag blue (`#21468B`) is reserved for the curated outline.
+`country` is reserved for the curated outline and Caribbean
+collection; the seeder still writes the color here for symmetry,
+but the geometry comes from `seed_data/country.geojson`.
 """
 
 # Category -> set of geometry-type names that may use it.
@@ -85,142 +70,14 @@ features and is never assigned to random features.
 # Category -> ordered tuple of human names. Names are unique within
 # a category so the search dropdown has distinguishable results.
 NAME_POOLS: Final[dict[str, tuple[str, ...]]] = {
-    "city": (
-        "Amsterdam",
-        "Rotterdam",
-        "The Hague",
-        "Utrecht",
-        "Eindhoven",
-        "Groningen",
-        "Maastricht",
-        "Arnhem",
-        "Haarlem",
-        "Delft",
-        "Leiden",
-        "Nijmegen",
-        "Tilburg",
-        "Almere",
-        "Breda",
-        "Apeldoorn",
-        "Enschede",
-        "Amersfoort",
-        "Zwolle",
-        "Deventer",
-    ),
-    "town": (
-        "Lisse",
-        "Valkenburg",
-        "Edam",
-        "Marken",
-        "Volendam",
-        "Giethoorn",
-        "Urk",
-        "Hindeloopen",
-        "Naarden",
-        "Willemstad",
-        "Bergen",
-        "Monnickendam",
-        "Schoorl",
-        "Woudrichem",
-        "Heusden",
-        "Hattem",
-        "Stavoren",
-        "Sloten",
-        "Thorn",
-        "Bronkhorst",
-    ),
-    "road": (
-        "A1",
-        "A2",
-        "A4",
-        "A6",
-        "A7",
-        "A9",
-        "A10",
-        "A12",
-        "A15",
-        "A16",
-        "A20",
-        "A27",
-        "A28",
-        "A29",
-        "A30",
-        "A31",
-        "A32",
-        "A35",
-        "A37",
-        "A38",
-    ),
-    "river": (
-        "Rijn",
-        "Maas",
-        "IJssel",
-        "Waal",
-        "Lek",
-        "Merwede",
-        "Nederrijn",
-        "Zwarte Water",
-        "Vecht",
-        "Dommel",
-        "Mark",
-        "Roer",
-        "Geleenbeek",
-        "Geul",
-        "Jeker",
-        "Swalm",
-        "Beek",
-        "Schelde",
-        "Hollandse IJssel",
-        "Oude Rijn",
-    ),
-    "canal": (
-        "Noordhollandsch Kanaal",
-        "Amsterdam-Rijnkanaal",
-        "Maas-Waalkanaal",
-        "Julianakanaal",
-        "Noorzeekanaal",
-        "Kanaal door Zuid-Beveland",
-        "Kanaal door Walcheren",
-        "Markkanaal",
-        "Twentekanaal",
-        "Zuid-Willemsvaart",
-    ),
-    "rail": (
-        "HSL-Zuid",
-        "Staatslijn A",
-        "Staatslijn B",
-        "Staatslijn C",
-        "Staatslijn D",
-        "Staatslijn E",
-        "Staatslijn F",
-        "Staatslijn G",
-        "Staatslijn H",
-        "Staatslijn K",
-    ),
-    "park": (
-        "Veluwe",
-        "Hoge Veluwe",
-        "Utrechtse Heuvelrug",
-        "Sallandse Heuvelrug",
-        "Drents-Friese Wold",
-        "Weerribben-Wieden",
-        "Oostvaardersplassen",
-        "Kennemerduinen",
-        "Duinen van Texel",
-        "Amsterdamse Bos",
-    ),
-    "lake": (
-        "IJsselmeer",
-        "Markermeer",
-        "Veluwemeer",
-        "Drontermeer",
-        "Zwarte Meer",
-        "Gooimeer",
-        "Eemmeer",
-        "Nuldernauw",
-        "Wolderwijd",
-        "Ketelmeer",
-    ),
+    "city": ("Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven"),
+    "town": ("Edam", "Volendam", "Giethoorn"),
+    "road": ("A1", "A2", "A4"),
+    "river": ("Rijn", "Maas", "IJssel"),
+    "canal": ("Noordzeekanaal", "Amsterdam-Rijnkanaal"),
+    "rail": ("Staatslijn A", "HSL-Zuid"),
+    "park": ("Veluwe", "Hoge Veluwe", "Amsterdamse Bos"),
+    "lake": ("IJsselmeer", "Markermeer", "Veluwemeer"),
     "province": (
         "Groningen",
         "Friesland",
@@ -235,149 +92,71 @@ NAME_POOLS: Final[dict[str, tuple[str, ...]]] = {
         "Noord-Brabant",
         "Limburg",
     ),
-    "nature_reserve": (
-        "Waddenzee",
-        "Schiermonnikoog",
-        "Vlieland",
-        "Terschelling",
-        "Ameland",
-        "Schouwen-Duiveland",
-        "Goeree-Overflakkee",
-        "Voornes Duin",
-        "Biesbosch",
-        "Weerribben-Wieden",
-    ),
+    "nature_reserve": ("Waddenzee", "Biesbosch", "De Maasduinen"),
 }
-"""Onomastic name pools, one per category. Names are unique within a category."""
+"""Onomastic name pools, one per category. Names are unique within a category.
 
-# Geometry-type -> weight used by `random.choices` to pick the type.
-GEOMETRY_TYPE_WEIGHTS: Final[dict[str, int]] = {
-    "Point": 400,
-    "LineString": 250,
-    "Polygon": 200,
-    "MultiPoint": 50,
-    "MultiLineString": 50,
-    "MultiPolygon": 50,
-}
-"""The geometry-type distribution from the Seed spec §3. The total is 1000 random features."""
+Total: 5+3+3+3+2+2+3+3+12+3 = 39 real features, plus 2 curated
+`country` features = 41 total.
 
-
-def _generate_point(
-    random_generator: random.Random,
-    bbox: tuple[float, float, float, float],
-    center_x: float,
-    center_y: float,
-) -> Point:
-    """Generate a single-point geometry at the chosen center."""
-    return Point(center_x, center_y, srid=4326)
-
-
-def _generate_multi_point(
-    random_generator: random.Random,
-    bbox: tuple[float, float, float, float],
-    center_x: float,
-    center_y: float,
-) -> MultiPoint:
-    """Generate 3-8 points, each a small random offset from the center."""
-    point_count = random_generator.randint(3, 8)
-    points = tuple(
-        Point(
-            center_x + random_generator.uniform(-0.3, 0.3),
-            center_y + random_generator.uniform(-0.3, 0.3),
-            srid=4326,
-        )
-        for _ in range(point_count)
-    )
-    return MultiPoint(points, srid=4326)
-
-
-def _generate_line_string(
-    random_generator: random.Random,
-    bbox: tuple[float, float, float, float],
-    center_x: float,
-    center_y: float,
-) -> LineString:
-    """Generate 2-10 positions along a roughly straight line, jittered."""
-    vertex_count = random_generator.randint(2, 10)
-    heading_x = random_generator.uniform(-1.0, 1.0)
-    heading_y = random_generator.uniform(-1.0, 1.0)
-    positions = tuple(
-        (
-            center_x + heading_x * step_index + random_generator.uniform(-0.1, 0.1),
-            center_y + heading_y * step_index + random_generator.uniform(-0.1, 0.1),
-        )
-        for step_index in range(vertex_count)
-    )
-    return LineString(positions, srid=4326)
-
-
-def _generate_multi_line_string(
-    random_generator: random.Random,
-    bbox: tuple[float, float, float, float],
-    center_x: float,
-    center_y: float,
-) -> MultiLineString:
-    """Generate 2-4 LineStrings, each 2-8 positions."""
-    line_count = random_generator.randint(2, 4)
-    lines = tuple(_generate_line_string(random_generator, bbox, center_x, center_y) for _ in range(line_count))
-    return MultiLineString(lines, srid=4326)
-
-
-def _generate_polygon(
-    random_generator: random.Random,
-    bbox: tuple[float, float, float, float],
-    center_x: float,
-    center_y: float,
-) -> Polygon:
-    """Generate a single closed ring of 3-8 positions, returning to the start point.
-
-    RFC 7946 §3.1.6 requires a linear ring to have at least 4
-    positions (3 distinct + the closing position equal to the first).
-    GEOS's `GEOSGeom_createLinearRing_r` rejects rings whose first
-    and last positions are not equal, so the first position is
-    appended explicitly at the end.
-    """
-    vertex_count = random_generator.randint(3, 8)
-    ring_radius = 0.2
-    ring_positions = [
-        (
-            center_x
-            + ring_radius * math.cos(2 * math.pi * vertex_index / vertex_count)
-            + random_generator.uniform(-0.05, 0.05),
-            center_y
-            + ring_radius * math.sin(2 * math.pi * vertex_index / vertex_count)
-            + random_generator.uniform(-0.05, 0.05),
-        )
-        for vertex_index in range(vertex_count)
-    ]
-    ring_positions.append(ring_positions[0])
-    return Polygon(tuple(ring_positions), srid=4326)
-
-
-def _generate_multi_polygon(
-    random_generator: random.Random,
-    bbox: tuple[float, float, float, float],
-    center_x: float,
-    center_y: float,
-) -> MultiPolygon:
-    """Generate 2-3 simple closed rings, each 3-8 positions."""
-    polygon_count = random_generator.randint(2, 3)
-    polygons = tuple(_generate_polygon(random_generator, bbox, center_x, center_y) for _ in range(polygon_count))
-    return MultiPolygon(polygons, srid=4326)
-
-
-GEOMETRY_GENERATORS: Final[dict[str, object]] = {
-    "Point": _generate_point,
-    "MultiPoint": _generate_multi_point,
-    "LineString": _generate_line_string,
-    "MultiLineString": _generate_multi_line_string,
-    "Polygon": _generate_polygon,
-    "MultiPolygon": _generate_multi_polygon,
-}
-"""Maps a geometry-type name to its `_generate_*` helper.
-
-`GeometryCollection` is curated-only and is not in this table.
+The `country` category is intentionally NOT in this table — the
+curated NL outline and Caribbean collection live in
+`seed_data/country.geojson`, not in a name pool.
 """
+
+
+SEED_DATA_FILES: Final[dict[str, str]] = {
+    "city": "city.geojson",
+    "town": "town.geojson",
+    "road": "road.geojson",
+    "river": "river.geojson",
+    "canal": "canal.geojson",
+    "rail": "rail.geojson",
+    "park": "park.geojson",
+    "lake": "lake.geojson",
+    "province": "province.geojson",
+    "nature_reserve": "nature_reserve.geojson",
+    "country": "country.geojson",
+}
+"""Maps each category to the filename under `seed_data/` that holds its real features.
+
+Curated `country.geojson` is hand-authored; the other 10 files are
+produced by `python manage.py download_seed_data` from Overpass.
+"""
+
+
+_SEED_DATA_DIR_OVERRIDE: Path | None = None
+"""Test hook: when set, `_load_bundle` reads from this directory instead of the bundled `seed_data/`.
+
+Tests monkey-patch this module variable to swap in a fixture bundle
+without copying files. The download command does not touch it.
+"""
+
+
+def _load_bundle(seed_data_dir: Path) -> list[tuple[str, dict]]:
+    """Read every `seed_data/<file>.geojson` in `SEED_DATA_FILES` and return (category, feature) pairs.
+
+    Each file is a GeoJSON `FeatureCollection`. This function returns
+    a flat list of `(category, feature_dict)` tuples — the caller is
+    responsible for constructing `Feature` model instances.
+
+    `seed_data_dir` is the path to the directory containing the
+    GeoJSON files; it defaults to the `seed_data/` directory next to
+    this module. Pass an explicit path in tests, or set
+    `_SEED_DATA_DIR_OVERRIDE` to swap in a fixture bundle.
+    """
+    effective_dir = _SEED_DATA_DIR_OVERRIDE if _SEED_DATA_DIR_OVERRIDE is not None else seed_data_dir
+    features: list[tuple[str, dict]] = []
+    for category, filename in SEED_DATA_FILES.items():
+        file_path = effective_dir / filename
+        with file_path.open(encoding="utf-8") as handle:
+            collection = json.load(handle)
+        if collection.get("type") != "FeatureCollection":
+            raise CommandError(
+                f"seed_data/{filename}: expected GeoJSON FeatureCollection, got {collection.get('type')!r}"
+            )
+        features.extend((category, feature) for feature in collection.get("features", []))
+    return features
 
 
 NETHERLANDS_OUTLINE_RING: Final[tuple[tuple[float, float], ...]] = (
@@ -512,145 +291,45 @@ def _build_curated_features(seed_creator_id: int | None) -> list[Feature]:
 
 
 class Command(BaseCommand):
-    """`python manage.py seed_features` — populate the DB with the demo dataset."""
+    """`python manage.py seed_features` — load real-coordinate features from the bundle."""
 
-    help = "Populate the database with a deterministic synthetic dataset of vector features."
+    help = "Delete all Feature rows and reload them from seed_data/*.geojson."
 
     def add_arguments(self, parser: object) -> None:
-        """Declare the four flags described in the Seed spec §2."""
-        parser.add_argument(  # type: ignore[attr-defined]
-            "--bbox",
-            type=str,
-            default=",".join(str(coordinate) for coordinate in DEFAULT_BBOX),
-            help=(
-                "Generation region as 'minx,miny,maxx,maxy' (WGS84). "
-                "Validated by features.filters.parse_bbox. "
-                f"Default: {','.join(str(coordinate) for coordinate in DEFAULT_BBOX)} (Netherlands)."
-            ),
-        )
-        parser.add_argument(  # type: ignore[attr-defined]
-            "--count",
-            type=int,
-            default=DEFAULT_COUNT,
-            help=f"Number of randomly-generated features. Default: {DEFAULT_COUNT}.",
-        )
-        parser.add_argument(  # type: ignore[attr-defined]
-            "--seed",
-            type=int,
-            default=DEFAULT_SEED,
-            help=f"PRNG seed for deterministic generation. Default: {DEFAULT_SEED}.",
-        )
-        parser.add_argument(  # type: ignore[attr-defined]
-            "--keep",
-            action="store_true",
-            help=(
-                "Explicit no-op: the default behavior is to truncate and re-seed only "
-                "the Feature rows and leave accounts_user alone. The flag is retained "
-                "for explicit clarity and for a future flag that re-seeds users."
-            ),
-        )
+        """Declare no flags. The seeder is now a "load and write" command.
+
+        Previously the seeder accepted `--count`, `--bbox`, `--seed`,
+        and `--keep`. All four were removed when the seeder was
+        rewritten to load from `seed_data/*.geojson` instead of
+        generating random features. See the Real-Coordinate Seed Data
+        spec §7.2.
+        """
+        return None
 
     def handle(self, *args: object, **options: object) -> None:
-        """Delete the existing Feature rows and re-seed with the deterministic dataset."""
-        raw_bbox = options["bbox"]  # type: ignore[index]
-        raw_count = options["count"]  # type: ignore[index]
-        raw_seed = options["seed"]  # type: ignore[index]
-
-        try:
-            bbox = parse_bbox(raw_bbox)  # type: ignore[arg-type]
-        except Exception as exc:
-            raise CommandError(f"Invalid --bbox: {exc}") from exc
-
-        feature_count = int(raw_count)  # type: ignore[arg-type]
-        if feature_count <= 0:
-            raise CommandError("--count must be a positive integer")
-
-        seed_value = int(raw_seed)  # type: ignore[arg-type]
+        """Delete all `Feature` rows, load `seed_data/*.geojson`, and bulk-create new Features."""
+        seed_data_dir = Path(__file__).parent / "seed_data"
 
         Feature.objects.all().delete()
 
-        features = _run_seed(
-            bbox=bbox,
-            feature_count=feature_count,
-            seed=seed_value,
-        )
-        Feature.objects.bulk_create(features, batch_size=500)
+        bundle = _load_bundle(seed_data_dir)
+        seed_creator_id = _first_registered_user_id()
 
-        self.stdout.write(
-            f"seed_features: created {len(features)} features (count={feature_count}, seed={seed_value}, bbox={bbox})"
-        )
-
-
-def _run_seed(
-    bbox: tuple[float, float, float, float],
-    feature_count: int,
-    seed: int,
-) -> list[Feature]:
-    """Generate the list of Feature objects (random + curated) for the given parameters.
-
-    The order matters: the curated Netherlands outline is appended
-    last so the frontend renders it on top of the random features
-    (per Seed spec §4).
-    """
-    min_x, min_y, max_x, max_y = bbox
-    shrunken_min_x = min_x + BBOX_SAFETY_MARGIN
-    shrunken_min_y = min_y + BBOX_SAFETY_MARGIN
-    shrunken_max_x = max_x - BBOX_SAFETY_MARGIN
-    shrunken_max_y = max_y - BBOX_SAFETY_MARGIN
-
-    random_generator = random.Random(seed)
-    geometry_type_names = list(GEOMETRY_TYPE_WEIGHTS.keys())
-    geometry_type_weights = list(GEOMETRY_TYPE_WEIGHTS.values())
-
-    used_names_by_category: dict[str, set[str]] = {category: set() for category in NAME_POOLS}
-    seed_creator_id = _first_registered_user_id()
-
-    features: list[Feature] = []
-    for _ in range(feature_count):
-        geometry_type_name = random_generator.choices(
-            population=geometry_type_names,
-            weights=geometry_type_weights,
-            k=1,
-        )[0]
-
-        applicable_categories = [
-            category
-            for category, allowed_types in CATEGORY_TO_GEOMETRY_TYPES.items()
-            if geometry_type_name in allowed_types and category != "country"
+        features_to_create = [
+            Feature(
+                geometry=GEOSGeometry(json.dumps(feature["geometry"])),
+                properties={
+                    "name": feature["properties"]["name"],
+                    "color": CATEGORY_COLORS[category],
+                    "category": category,
+                },
+                created_by_id=seed_creator_id,
+            )
+            for category, feature in bundle
         ]
-        chosen_category = random_generator.choice(applicable_categories)
+        Feature.objects.bulk_create(features_to_create, batch_size=500)
 
-        name_pool = NAME_POOLS[chosen_category]
-        available_names = [name for name in name_pool if name not in used_names_by_category[chosen_category]]
-        if not available_names:
-            available_names = list(name_pool)
-        chosen_name = random_generator.choice(available_names)
-        used_names_by_category[chosen_category].add(chosen_name)
-
-        chosen_color = random_generator.choice(COLOR_PALETTE)
-
-        center_x = random_generator.uniform(shrunken_min_x, shrunken_max_x)
-        center_y = random_generator.uniform(shrunken_min_y, shrunken_max_y)
-        geometry = GEOMETRY_GENERATORS[geometry_type_name](
-            random_generator=random_generator,
-            bbox=bbox,
-            center_x=center_x,
-            center_y=center_y,
-        )
-
-        feature = Feature(
-            geometry=geometry,
-            properties={
-                "name": chosen_name,
-                "color": chosen_color,
-                "category": chosen_category,
-            },
-            created_by_id=seed_creator_id,
-        )
-        features.append(feature)
-
-    features.extend(_build_curated_features(seed_creator_id=seed_creator_id))
-    return features
+        self.stdout.write(f"seed_features: created {len(features_to_create)} features from {seed_data_dir}")
 
 
 def _first_registered_user_id() -> int | None:

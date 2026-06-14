@@ -1,6 +1,14 @@
-.PHONY: up down migrate seed test lint shell
+.PHONY: up down migrate seed test lint shell setup precommit-install
 
 COMPOSE := docker compose
+
+setup: precommit-install
+	pip install pre-commit ruff
+	npm install
+	pre-commit install
+
+precommit-install:
+	@command -v pre-commit >/dev/null 2>&1 || { echo "pre-commit not installed. Run: pip install pre-commit"; exit 1; }
 
 up:
 	$(COMPOSE) up -d

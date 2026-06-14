@@ -1,0 +1,68 @@
+{% extends "base.html" %} {% load static %} {% block title %}Map{% endblock %} {% block content %}
+<div class="position-relative">
+    <div id="map"></div>
+    <div class="position-absolute top-0 end-0 m-3 d-flex flex-column gap-2" id="map-toolbar" style="z-index: 1030">
+        <div class="btn-group-vertical" role="group" aria-label="Draw tools">
+            <button type="button" class="btn btn-light" id="draw-point-button" title="Draw point">Point</button>
+            <button type="button" class="btn btn-light" id="draw-line-button" title="Draw line">Line</button>
+            <button type="button" class="btn btn-light" id="draw-polygon-button" title="Draw polygon">Polygon</button>
+        </div>
+        <button type="button" class="btn btn-light" id="import-button" title="Import .geojson">Import</button>
+        <input type="file" accept=".geojson,.json" id="import-file-input" class="d-none" />
+        <button type="button" class="btn btn-light" id="export-button" title="Export .geojson">Export</button>
+        <button type="button" class="btn btn-light d-none" id="load-more-button">Load more</button>
+    </div>
+    <aside id="panel" aria-hidden="true">
+        <div class="panel-header">
+            <h5 class="m-0">Feature</h5>
+            <button type="button" class="btn-close" id="panel-close" aria-label="Close"></button>
+        </div>
+        <div class="panel-body" id="panel-body">
+            <div id="panel-alert" class="alert alert-danger d-none" role="alert"></div>
+            <table class="table table-sm" id="panel-properties-table">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="panel-properties-tbody"></tbody>
+            </table>
+            <div class="d-flex justify-content-between mt-3">
+                <button type="button" class="btn btn-outline-danger btn-sm" id="panel-delete">Delete feature</button>
+            </div>
+        </div>
+    </aside>
+    <div class="modal fade" id="draw-name-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Name the new feature</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="draw-name-alert" class="alert alert-danger d-none" role="alert"></div>
+                    <label for="draw-name-input" class="form-label">Name</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="draw-name-input"
+                        placeholder="My new feature"
+                        maxlength="200"
+                    />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="draw-name-cancel">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" id="draw-name-save" disabled>Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/ol@10.3.1/dist/ol.js"></script>
+<script type="module" src="{% static 'js/map.js' %}"></script>
+{% endblock %}

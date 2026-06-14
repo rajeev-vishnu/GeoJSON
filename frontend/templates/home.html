@@ -1,0 +1,10 @@
+{% extends "base.html" %} {% block title %}GeoJSON — Home{% endblock %} {% block content %}
+<div class="container py-5 text-center" id="home-hero">
+    <h1 class="mb-4" id="home-heading">GeoJSON</h1>
+    <p class="lead mb-5" id="home-subheading">Browse, edit, and draw features on a map.</p>
+    <div class="d-flex justify-content-center gap-3">
+        <a class="btn btn-primary btn-lg" href="/map/" id="home-map-button">View Map</a>
+        <a class="btn btn-outline-primary btn-lg" href="/edit/" id="home-edit-button">Edit Properties</a>
+    </div>
+</div>
+{% endblock %}

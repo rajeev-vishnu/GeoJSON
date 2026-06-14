@@ -79,6 +79,10 @@ class FeatureSerializer(serializers.ModelSerializer):
 
         if not _is_json_serializable(value):
             raise serializers.ValidationError("property values must be JSON-serializable")
+        if "name" in value:
+            name_value = value["name"]
+            if not isinstance(name_value, str) or not name_value:
+                raise serializers.ValidationError({"name": "name must be a non-empty string when present"})
         return value
 
 

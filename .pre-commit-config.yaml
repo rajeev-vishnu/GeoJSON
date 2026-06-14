@@ -1,34 +1,36 @@
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-toml
-      - id: check-json
-      - id: mixed-line-ending
-        args: [--fix=lf]
-      - id: check-added-large-files
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v6.0.0
+      hooks:
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+          - id: check-yaml
+          - id: check-toml
+          - id: check-json
+          - id: mixed-line-ending
+            args: [--fix=lf]
+          - id: check-added-large-files
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.17
-    hooks:
-      - id: ruff-check
-        args: [--fix]
-      - id: ruff-format
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.15.17
+      hooks:
+          - id: ruff-check
+            args: [--fix]
+          - id: ruff-format
 
-  - repo: local
-    hooks:
+    - repo: local
+      hooks:
       - id: biome
         name: biome (JS/JSON)
-        entry: bash -c 'npx --yes @biomejs/biome@2.5.0 check --write --files-ignore-unknown=true --no-errors-on-unmatched "$@"' --
-        language: system
-        types_or: [javascript, ts, json]
+        language: node
+        additional_dependencies: ['@biomejs/biome']
+        entry: biome check --write --no-errors-on-unmatched frontend/static/js/ biome.json
+        pass_filenames: false
         require_serial: true
 
       - id: prettier-html
         name: prettier (HTML)
-        entry: bash -c 'npx --yes prettier@3.8.4 --write "$@"' --
-        language: system
-        types: [html]
+        language: node
+        additional_dependencies: ['prettier']
+        entry: prettier --write frontend/templates/*.html
+        pass_filenames: false

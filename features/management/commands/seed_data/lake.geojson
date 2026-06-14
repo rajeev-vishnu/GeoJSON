@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[5.00, 52.50], [5.55, 52.50], [5.55, 53.05], [5.00, 53.05], [5.00, 52.50]]]}, "properties": {"name": "IJsselmeer"}},
+    {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[5.00, 52.40], [5.40, 52.40], [5.40, 52.65], [5.00, 52.65], [5.00, 52.40]]]}, "properties": {"name": "Markermeer"}},
+    {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[5.60, 52.30], [5.80, 52.30], [5.80, 52.50], [5.60, 52.50], [5.60, 52.30]]]}, "properties": {"name": "Veluwemeer"}}
+  ]
+}

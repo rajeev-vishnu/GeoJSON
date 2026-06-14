@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "LineString", "coordinates": [[4.0, 52.0], [5.0, 52.0]]},
+      "properties": {"name": "TestCanal"}
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "MultiPolygon", "coordinates": [[[[4.70, 53.30], [6.00, 53.30], [6.00, 53.55], [4.70, 53.55], [4.70, 53.30]]], [[[4.80, 53.10], [5.30, 53.10], [5.30, 53.30], [4.80, 53.30], [4.80, 53.10]]]]}, "properties": {"name": "Waddenzee"}},
+    {"type": "Feature", "geometry": {"type": "MultiPolygon", "coordinates": [[[[4.65, 51.70], [4.95, 51.70], [4.95, 51.85], [4.65, 51.85], [4.65, 51.70]]]]}, "properties": {"name": "Biesbosch"}},
+    {"type": "Feature", "geometry": {"type": "MultiPolygon", "coordinates": [[[[5.95, 51.50], [6.20, 51.50], [6.20, 51.65], [5.95, 51.65], [5.95, 51.50]]]]}, "properties": {"name": "De Maasduinen"}}
+  ]
+}

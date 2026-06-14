@@ -14,7 +14,7 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 # container URL (see CI spec §2).
 DATABASES = {
     "default": dj_database_url.config(  # noqa: F405  (re-exported from base)
-        default="postgres://geojson:geojson@localhost:5432/geojson",
+        default="postgres://geojson:geojson@db:5432/geojson",
         engine="django.contrib.gis.db.backends.postgis",
     ),
 }

@@ -1,0 +1,36 @@
+{% extends "base.html" %} {% load static %} {% block title %}Edit Properties{% endblock %} {% block content %}
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 m-0">Edit Properties</h1>
+        <div class="d-flex align-items-center gap-2">
+            <label for="sort-order" class="form-label m-0">Sort:</label>
+            <select id="sort-order" class="form-select form-select-sm">
+                <option value="-updated_at" selected>Last updated (newest)</option>
+                <option value="updated_at">Last updated (oldest)</option>
+                <option value="-created_at">Created (newest)</option>
+                <option value="created_at">Created (oldest)</option>
+            </select>
+        </div>
+    </div>
+    <div id="edit-alert" class="alert alert-danger d-none" role="alert"></div>
+    <table class="table" id="features-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Color</th>
+                <th>Category</th>
+                <th>Type</th>
+                <th>Properties</th>
+            </tr>
+        </thead>
+        <tbody id="features-tbody"></tbody>
+    </table>
+    <div class="d-flex justify-content-between align-items-center mt-3" id="pagination">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="page-prev">Previous</button>
+        <span class="text-muted small" id="page-indicator">Page 1</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="page-next">Next</button>
+    </div>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script type="module" src="{% static 'js/edit.js' %}"></script>
+{% endblock %}

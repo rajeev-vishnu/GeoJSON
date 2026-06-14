@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% load static %} {% block title %}Login{% endblock %} {% block content %}
+<div class="container py-5" style="max-width: 420px">
+    <h1 class="mb-4">Login</h1>
+    <div id="login-alert" class="alert alert-danger d-none" role="alert"></div>
+    <form id="login-form" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="login-email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="login-email" name="email" required />
+        </div>
+        <div class="mb-3">
+            <label for="login-password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="login-password" name="password" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100" id="login-submit">Login</button>
+    </form>
+    <p class="mt-3 text-center text-muted small">No account? <a href="/register/">Register</a></p>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script type="module">
+    import { auth } from "{% static 'js/auth.js' %}";
+
+    const form = document.getElementById("login-form");
+    const alert_box = document.getElementById("login-alert");
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        alert_box.classList.add("d-none");
+        const email = form.elements.namedItem("email").value;
+        const password = form.elements.namedItem("password").value;
+        try {
+            await auth.login(email, password);
+            window.location.href = "/map/";
+        } catch (error) {
+            alert_box.textContent = error.message || "Login failed.";
+            alert_box.classList.remove("d-none");
+        }
+    });
+</script>
+{% endblock %}

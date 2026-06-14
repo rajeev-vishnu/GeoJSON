@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "Polygon", "coordinates": [[[5.0, 52.0], [5.2, 52.0], [5.2, 52.2], [5.0, 52.2], [5.0, 52.0]]]},
+      "properties": {"name": "TestLake"}
+    }
+  ]
+}

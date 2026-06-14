@@ -103,3 +103,34 @@ def test_read_only_fields(user):
 
     assert new_feature.id != uuid.UUID(payload["id"])
     assert new_feature.created_by.pk == user.pk
+
+
+def test_name_must_be_non_empty_string_when_present(make_feature):
+    """A non-empty `str` is required when the `name` key is present in `properties`."""
+    feature = make_feature(properties={"name": "Foo", "color": "#ff0000"})
+
+    serializer = FeatureSerializer(
+        instance=feature,
+        data={
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [5.0, 52.0]},
+            "properties": {"name": "", "color": "#ff0000"},
+        },
+    )
+    assert not serializer.is_valid()
+    assert "name" in serializer.errors["properties"]
+
+
+def test_name_valid_when_string(make_feature):
+    """A non-empty string `name` is accepted."""
+    feature = make_feature(properties={"name": "Foo", "color": "#ff0000"})
+
+    serializer = FeatureSerializer(
+        instance=feature,
+        data={
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [5.0, 52.0]},
+            "properties": {"name": "Bar", "color": "#ff0000"},
+        },
+    )
+    assert serializer.is_valid(), serializer.errors

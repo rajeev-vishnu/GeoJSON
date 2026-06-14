@@ -88,8 +88,8 @@ def test_create(user, make_auth_client):
     assert Feature.objects.filter(properties__name="New").exists()
 
 
-def test_partial_update(user, make_auth_client):
-    """PATCH /api/features/{id}/ replaces `properties` with the supplied payload."""
+def test_partial_update_merges_properties(user, make_auth_client):
+    """PATCH /api/features/{id}/ merges `properties` with the existing dict (additive)."""
     feature = Feature.objects.create(
         geometry=Point(5.0, 52.0, srid=4326),
         properties={"name": "Old", "color": "#ff0000", "category": "city"},
@@ -97,17 +97,45 @@ def test_partial_update(user, make_auth_client):
     )
 
     response = make_auth_client().patch(
-        f"/api/features/{feature.pk}/",
-        {"properties": {"name": "New", "color": "#00ff00", "category": "city"}},
+        path=f"/api/features/{feature.pk}/",
+        data={"properties": {"name": "New"}},
         format="json",
     )
 
     assert response.status_code == 200
     body = response.json()
     assert body["properties"]["name"] == "New"
-    assert body["properties"]["color"] == "#00ff00"
+    assert body["properties"]["color"] == "#ff0000"
+    assert body["properties"]["category"] == "city"
     feature.refresh_from_db()
-    assert feature.properties["name"] == "New"
+    assert feature.properties == {
+        "name": "New",
+        "color": "#ff0000",
+        "category": "city",
+    }
+
+
+def test_partial_update_null_deletes_key(user, make_auth_client):
+    """PATCH with `{key: null}` removes that key from `properties`."""
+    feature = Feature.objects.create(
+        geometry=Point(5.0, 52.0, srid=4326),
+        properties={"name": "Foo", "color": "#ff0000", "category": "city"},
+        created_by=user,
+    )
+
+    response = make_auth_client().patch(
+        path=f"/api/features/{feature.pk}/",
+        data={"properties": {"category": None}},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "category" not in body["properties"]
+    assert body["properties"]["name"] == "Foo"
+    assert body["properties"]["color"] == "#ff0000"
+    feature.refresh_from_db()
+    assert "category" not in feature.properties
 
 
 def test_delete(user, make_auth_client):

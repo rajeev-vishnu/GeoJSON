@@ -1,0 +1,7 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[4.50, 52.40], [4.55, 52.42], [4.65, 52.45], [4.75, 52.50]]}, "properties": {"name": "Noordzeekanaal"}},
+    {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[4.90, 52.40], [5.05, 52.20], [5.30, 52.10], [5.50, 52.00]]}, "properties": {"name": "Amsterdam-Rijnkanaal"}}
+  ]
+}
