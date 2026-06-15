@@ -30,10 +30,8 @@ docker compose down
 
 ```bash
 docker compose up --wait      # bring the stack up (idempotent, safe to re-run)
-docker compose down           # stop the stack
 docker compose exec web python manage.py seed_features          # (re)load sample data
 docker compose exec web python manage.py shell                 # open a Django shell
 docker compose run --rm -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest   # unit tests
-docker compose up -d && node e2e/map-color-style.mjs           # end-to-end browser tests
 docker compose exec web ruff check .                           # run ruff
 ```
