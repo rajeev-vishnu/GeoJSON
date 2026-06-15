@@ -14,19 +14,13 @@ intentional step (`make seed`) so data loading is opt-in.
 Idempotent. Safe to re-run after `make down`, after pulling new changes, or
 on a fresh clone. Sequence:
 
-1. **Ensure `.env` exists with a fresh secret.**
-   - If `.env` is missing, copy `.env.example` to `.env`.
-   - In the freshly-copied file, replace the placeholder
-     `DJANGO_SECRET_KEY=change-me-...` with a value generated inside a
-     short-lived `web` container:
-     `docker compose run --rm web python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`.
-     This guarantees we use the project's pinned Django.
-   - If `.env` already exists, leave it untouched. The colleague's local
-     secret is preserved across re-runs.
+1. **Ensure `.env` exists.** If missing, copy `.env.example` to `.env`
+   verbatim. The placeholder `DJANGO_SECRET_KEY=change-me-...` becomes the
+   active secret. If `.env` already exists, leave it untouched.
 2. **Bring up `db` and wait for healthy.** `docker compose up -d db`, then
-   poll `docker compose ps db` (or `docker compose exec db pg_isready -U geojson`)
-   in a loop with a 30-second timeout. This is cheaper than starting the
-   full stack and waiting.
+   poll `docker compose exec db pg_isready -U geojson` in a loop with a
+   30-second timeout. This is cheaper than starting the full stack and
+   waiting.
 3. **Run migrations.** `docker compose run --rm migrate`. Reuses the
    existing one-shot `migrate` service in `docker-compose.yml`. Idempotent
    — safe to re-run.
@@ -54,7 +48,7 @@ high-level target on top of them.
 |-------------------------|-------------------------------------------|---------|---------------------------------------------------------------|
 | DB user / password      | `docker-compose.yml` (`geojson:geojson`)  | Yes     | Local-only throwaway DB; security is not a concern.           |
 | `DATABASE_URL`          | `.env`                                    | No      | Gitignored. References compose service name `db` — portable. |
-| `DJANGO_SECRET_KEY`     | `.env`                                    | No      | Auto-generated per dev machine on first `make app`.           |
+| `DJANGO_SECRET_KEY`     | `.env`                                    | No      | Placeholder from `.env.example` is fine for dev. Stable across restarts, not secret. |
 | `DJANGO_DEBUG`          | `.env`                                    | No      | `True` in `.env.example`.                                     |
 | `DJANGO_ALLOWED_HOSTS`  | `.env`                                    | No      | `*` in `.env.example`.                                        |
 | `CORS_ALLOWED_ORIGINS`  | `.env`                                    | No      | `http://localhost:8000` in `.env.example`.                    |
@@ -69,12 +63,16 @@ with zero prompts and zero `.env` dependencies for the database layer.
 Production deployment will inject real credentials via the platform's
 secret store (out of scope for this spec).
 
-### Why auto-generate the Django secret per machine
+### Why use the placeholder secret in dev
 
-- Prevents the "I accidentally committed my .env" footgun — there's never
-  a meaningful secret in the working tree to leak.
-- Makes `.env` clearly per-machine state, not shared config.
-- Costs nothing: a single `get_random_secret_key()` call.
+The Django secret in dev only signs cookies, CSRF tokens, and password
+reset tokens for a web app reachable only from the colleague's own
+laptop. It has no security value here. What matters is **stability
+across restarts** so sessions survive — the placeholder from
+`.env.example` provides that for free, with no generation step.
+
+For production, the real secret is injected via the deploy platform
+(out of scope for this spec).
 
 ### `.env` lifecycle
 
