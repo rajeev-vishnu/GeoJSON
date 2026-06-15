@@ -63,8 +63,13 @@ def test_base_template_loads_bootstrap_and_openlayers_from_cdn(client) -> None:
     assert "ol@" in body or "openlayers" in body.lower()
 
 
-def test_base_template_includes_search_bar_on_map_and_edit(client) -> None:
-    """The top-nav search input renders on `/map/` and `/edit/` (home and login are excluded)."""
-    for path in ("/map/", "/edit/"):
-        body = client.get(path).content.decode()
-        assert 'id="search-input"' in body, f"search input missing on {path}"
+def test_map_template_has_map_search_input(client) -> None:
+    """`/map/` includes the per-page `#map-search-input`."""
+    body = client.get("/map/").content.decode()
+    assert 'id="map-search-input"' in body
+
+
+def test_edit_template_has_edit_search_input(client) -> None:
+    """`/edit/` includes the per-page `#edit-search-input`."""
+    body = client.get("/edit/").content.decode()
+    assert 'id="edit-search-input"' in body

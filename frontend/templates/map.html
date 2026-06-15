@@ -1,5 +1,17 @@
 {% extends "base.html" %} {% load static %} {% block title %}Map{% endblock %} {% block content %}
 <div class="position-relative">
+    <div class="position-absolute top-0 start-0 m-3" id="map-search-container" style="z-index: 1030">
+        <div class="position-relative">
+            <input
+                type="search"
+                class="form-control form-control-sm"
+                id="map-search-input"
+                placeholder="Search by name..."
+                autocomplete="off"
+            />
+            <ul class="list-group position-absolute w-100 search-dropdown d-none" id="map-search-dropdown"></ul>
+        </div>
+    </div>
     <div id="map"></div>
     <div class="position-absolute top-0 end-0 m-3 d-flex flex-column gap-2" id="map-toolbar" style="z-index: 1030">
         <div class="btn-group-vertical" role="group" aria-label="Draw tools">

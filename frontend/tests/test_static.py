@@ -21,14 +21,16 @@ def _read_static(relative_path: str) -> str:
         return file_handle.read()
 
 
-def test_site_css_declares_search_dropdown_class() -> None:
-    """`site.css` defines `.search-dropdown` with `max-height: 360px; overflow-y: auto`."""
+def test_site_css_declares_map_search_dropdown() -> None:
+    """`site.css` defines `#map-search-dropdown` with the locked UX properties."""
     body = _read_static("css/site.css")
-    assert ".search-dropdown" in body
+    assert "#map-search-dropdown" in body
     assert "max-height" in body
     assert "360px" in body
     assert "overflow-y" in body
     assert "auto" in body
+    assert "overflow-x" in body
+    assert "hidden" in body
 
 
 def test_site_css_declares_panel_slide_in() -> None:
@@ -54,11 +56,28 @@ def test_auth_js_exports_named_auth() -> None:
     assert "logout" in body
 
 
-def test_search_js_exports_init_search() -> None:
-    """`search.js` exports an `initSearch` initializer."""
+def test_search_js_exports_shared_core() -> None:
+    """`search.js` exports the shared core (`DEBOUNCE_MS`, `fetchMatches`, `renderDropdownRow`)."""
     body = _read_static("js/search.js")
     assert "export" in body
-    assert "initSearch" in body
+    assert "DEBOUNCE_MS" in body
+    assert "fetchMatches" in body
+    assert "renderDropdownRow" in body
+
+
+def test_search_map_js_exports_init_map_search() -> None:
+    """`search-map.js` exports the `initMapSearch` initializer for the map page."""
+    body = _read_static("js/search-map.js")
+    assert "export" in body
+    assert "initMapSearch" in body
+
+
+def test_search_edit_js_exports_init_edit_search() -> None:
+    """`search-edit.js` exports the `initEditSearch` initializer and `readQuery` helper for the edit page."""
+    body = _read_static("js/search-edit.js")
+    assert "export" in body
+    assert "initEditSearch" in body
+    assert "readQuery" in body
 
 
 def test_map_js_exports_init_map() -> None:

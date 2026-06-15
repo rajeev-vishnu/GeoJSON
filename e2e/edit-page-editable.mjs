@@ -246,8 +246,8 @@ async function openMapPanelForFirstFeature(page) {
 
 async function checkSearchDropdownHumanizedLabel(page) {
   await page.goto(`${BASE}/map/`, { waitUntil: "networkidle" });
-  await page.waitForSelector("#search-input", { timeout: 5000 });
-  await page.locator("#search-input").fill("Amsterdam");
+  await page.waitForSelector("#map-search-input", { timeout: 5000 });
+  await page.locator("#map-search-input").fill("Amsterdam");
   await page.waitForResponse(
     (response) => {
       const url = response.url();
@@ -261,13 +261,13 @@ async function checkSearchDropdownHumanizedLabel(page) {
   );
   await page.waitForFunction(
     () => {
-      const dropdown = document.getElementById("search-dropdown");
+      const dropdown = document.getElementById("map-search-dropdown");
       return dropdown && !dropdown.classList.contains("d-none") && dropdown.querySelectorAll("li").length > 0;
     },
     { timeout: 15000 },
   );
   const badges = await page.evaluate(() =>
-    [...document.querySelectorAll("#search-dropdown .badge")].map((b) => b.textContent.trim()),
+    [...document.querySelectorAll("#map-search-dropdown .badge")].map((b) => b.textContent.trim()),
   );
   return badges;
 }

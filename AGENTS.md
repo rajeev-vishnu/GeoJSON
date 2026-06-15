@@ -9,6 +9,30 @@ On first run in a fresh clone, run `pre-commit install` first.
 Ruff (Python), Biome (JS), Prettier (HTML), and editorconfig (LF / UTF-8)
 are all enforced via pre-commit — anything they catch should be fixed.
 
+## Frontend visual verification
+
+For any change to a frontend template, CSS, or JS that affects rendered
+output, take a Playwright screenshot of every affected page and verify
+the expected behavior is visible before declaring the change done. A
+frontend change is not complete until:
+
+1. A screenshot has been saved (e.g. to `e2e/screenshots/<name>.png`).
+2. The screenshot has been opened / inspected and the expected
+   element, position, or interaction is confirmed present.
+3. The relevant existing E2E test still passes.
+
+Useful one-liner for ad-hoc visual checks:
+
+```bash
+node e2e/capture-frontend-check.mjs <path> <output-png> [wait-ms]
+```
+
+…or a small inline Playwright script via `node -e` for quick inspection.
+Do **not** mark a frontend change as completed on the basis of E2E test
+output alone — those tests assert structural / behavioral hooks and
+cannot detect "the element is invisible because z-index is wrong" or
+"the layout pushed it off-screen".
+
 ## Python conventions
 
 ### Function calls

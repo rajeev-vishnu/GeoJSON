@@ -86,13 +86,13 @@ async function main() {
     );
   }
 
-  const input = page.locator("#search-input");
-  const dropdown = page.locator("#search-dropdown");
+  const input = page.locator("#map-search-input");
+  const dropdown = page.locator("#map-search-dropdown");
 
   // ── Bug A, part 1: 1 result, no horizontal overflow ────────────────
   await input.click();
   await input.fill("gr");
-  await page.waitForSelector("#search-dropdown:not(.d-none) li", {
+  await page.waitForSelector("#map-search-dropdown:not(.d-none) li", {
     timeout: 5000,
   });
   const oneResultMeasure = await measureOverflow(dropdown);
@@ -108,7 +108,7 @@ async function main() {
   await page.waitForTimeout(300);
   await input.fill("a");
   await page.waitForFunction(
-    () => document.querySelectorAll("#search-dropdown li").length >= 5,
+    () => document.querySelectorAll("#map-search-dropdown li").length >= 5,
     null,
     { timeout: 5000 },
   );
@@ -128,7 +128,7 @@ async function main() {
   await input.fill("");
   await page.waitForTimeout(300);
   await input.fill("gr");
-  await page.waitForSelector("#search-dropdown:not(.d-none) li", {
+  await page.waitForSelector("#map-search-dropdown:not(.d-none) li", {
     timeout: 5000,
   });
   await page.screenshot({
@@ -140,7 +140,7 @@ async function main() {
   await input.fill("");
   await page.waitForTimeout(300);
   await input.fill("gr");
-  await page.waitForSelector("#search-dropdown:not(.d-none) li", {
+  await page.waitForSelector("#map-search-dropdown:not(.d-none) li", {
     timeout: 5000,
   });
   await dropdown.locator("li").first().click();
@@ -161,7 +161,7 @@ async function main() {
   );
   assert.equal(
     focusedId,
-    "search-input",
+    "map-search-input",
     `Bug B: focus did not return to search input (active element id is "${focusedId}")`,
   );
 

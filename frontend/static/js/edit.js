@@ -1,6 +1,7 @@
 import { api } from "./api.js";
 import { auth } from "./auth.js";
 import { renderCategorySelect } from "./categories.js";
+import { initEditSearch, readQuery } from "./search-edit.js";
 
 const LIST_URL = "/api/features/";
 const ALLOWED_ORDERING = ["created_at", "-created_at", "updated_at", "-updated_at"];
@@ -10,6 +11,7 @@ let current_page = 1;
 let current_ordering = "-updated_at";
 let next_url = null;
 let prev_url = null;
+let _current_request_id = 0;
 
 function show_alert(message) {
   const box = document.getElementById("edit-alert");
@@ -381,10 +383,14 @@ function render_category_cell(feature) {
   return cell;
 }
 
-async function load_page() {
+async function load_page({ search } = {}) {
+  const query = search !== undefined ? search : readQuery();
+  const request_id = ++_current_request_id;
   try {
-    const url = `${LIST_URL}?page=${current_page}&ordering=${encodeURIComponent(current_ordering)}`;
-    const body = await api.get(url);
+    const base = `${LIST_URL}?page=${current_page}&ordering=${encodeURIComponent(current_ordering)}`;
+    const final_url = query ? `${base}&search=${encodeURIComponent(query)}` : base;
+    const body = await api.get(final_url);
+    if (request_id !== _current_request_id) return;
     clear_table();
     for (const feature of body.results || []) {
       render_feature(feature);
@@ -396,12 +402,14 @@ async function load_page() {
     document.getElementById("page-indicator").textContent = `Page ${current_page}`;
     clear_alert();
   } catch (error) {
+    if (request_id !== _current_request_id) return;
     show_alert(error?.message || "Failed to load features.");
   }
 }
 
 function initEdit() {
   if (!auth.requireAuth()) return;
+  initEditSearch({ onChange: load_page });
   document.getElementById("sort-order")?.addEventListener("change", (event) => {
     const next = event.target.value;
     if (ALLOWED_ORDERING.includes(next)) {

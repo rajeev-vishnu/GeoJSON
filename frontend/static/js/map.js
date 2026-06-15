@@ -3,6 +3,7 @@ import { auth } from "./auth.js";
 import { initDraw } from "./map-draw.js";
 import { initImportExport } from "./map-import.js";
 import { initPanel } from "./map-panel.js";
+import { initMapSearch } from "./search-map.js";
 
 const LIST_URL = "/api/features/";
 const DEBOUNCE_MS = 250;
@@ -153,6 +154,7 @@ function fly_to_feature(feature) {
 
 function initMap() {
   if (!auth.requireAuth()) return;
+  initMapSearch();
   map_state.map = build_ol_map();
   if (!map_state.map) return;
   window.__geojsonMap = map_state;

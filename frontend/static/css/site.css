@@ -3,16 +3,29 @@
     height: calc(100vh - 56px);
 }
 
-#search-input {
+#map-search-input {
     width: 280px;
 }
 
-.search-dropdown {
-    min-width: 320px;
+#edit-search-input {
+    flex: 1;
+    min-width: 200px;
+}
+
+#map-search-dropdown {
+    min-width: 360px;
     max-height: 360px;
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 1050;
+}
+
+/* Reposition OL's default zoom controls to the bottom-left so they
+   don't overlap the top-left search bar. OL's stock `.ol-zoom` rule
+   pins them to top: .5em / left: .5em. */
+.ol-zoom {
+    top: auto;
+    bottom: 0.5em;
 }
 
 #panel {
