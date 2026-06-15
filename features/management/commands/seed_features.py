@@ -1,6 +1,6 @@
 """Seed the database with a real-coordinate dataset of vector features.
 
-Run via `python manage.py seed_features` (or `make seed`). The seeder
+Run via `python manage.py seed_features` (or `docker compose exec web python manage.py seed_features`). The seeder
 loads from `seed_data/*.geojson` (a bundle of OpenStreetMap-sourced
 features) and bulk-creates `Feature` rows. See
 `docs/superpowers/specs/2026-06-15-geojson-real-seed-data-design.md`

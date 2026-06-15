@@ -78,6 +78,11 @@ function renderRows(features) {
     row.addEventListener("click", () => {
       window.dispatchEvent(new CustomEvent("map:fly-to", { detail: { feature } }));
       closeDropdown();
+      const input = document.getElementById("search-input");
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
     });
     dropdown.appendChild(row);
   }

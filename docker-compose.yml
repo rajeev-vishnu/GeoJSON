@@ -17,7 +17,13 @@ services:
 
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    # Migrations run on every container start; they are idempotent and
+    # a no-op when there are no pending changes. `docker compose up
+    # --wait` is the single-command bring-up: it starts db, waits for
+    # the healthcheck, then starts web (which migrates + serves).
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
     env_file: .env
     volumes:
       - .:/app
@@ -26,15 +32,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
-  migrate:
-    build: .
-    command: python manage.py migrate --noinput
-    env_file: .env
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: "no"
 
 volumes:
   pgdata:
