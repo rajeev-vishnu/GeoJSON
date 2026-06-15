@@ -109,6 +109,21 @@ async function main() {
   });
   await page.waitForTimeout(500);
 
+  // Preflight: this test depends on seeded features. If the database is
+  // empty, the test cannot reproduce the bugs it locks in.
+  const seedCount = await page.evaluate(async () => {
+    const response = await fetch("/api/features/?page=1", {
+      headers: { Authorization: "Bearer " + localStorage.getItem("access") },
+    });
+    const body = await response.json();
+    return body.count ?? body.results?.length ?? 0;
+  });
+  if (seedCount < 5) {
+    throw new Error(
+      `preflight: database has ${seedCount} features; this test needs ≥ 5. Run: docker compose exec web python manage.py seed_features`,
+    );
+  }
+
   const input = page.locator("#search-input");
   const dropdown = page.locator("#search-dropdown");
 
@@ -217,6 +232,13 @@ Bug A: drop-down has horizontal overflow with 1 result (scrollWidth 236 > client
 ```
 
 If you see a different failure (e.g. `auth/me` 401, or a network error), stop and investigate — the test setup is wrong, not the production code.
+
+If the database is empty, the preflight will abort with a clear instruction
+to seed first. Run:
+
+```bash
+docker compose exec web python manage.py seed_features
+```
 
 ---
 
