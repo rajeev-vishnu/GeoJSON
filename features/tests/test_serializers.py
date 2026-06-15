@@ -202,3 +202,31 @@ def test_category_null_is_accepted(make_feature):
         },
     )
     assert serializer.is_valid(), serializer.errors
+
+
+def test_properties_boolean_round_trip(make_feature):
+    """A boolean value survives a serialize → deserialize → save round-trip as bool."""
+    feature = make_feature(properties={"name": "Foo", "color": "#ff0000"})
+
+    body = FeatureSerializer(feature).data
+    body["properties"]["flag"] = True
+    rebuilt = FeatureSerializer(data=body)
+    assert rebuilt.is_valid(), rebuilt.errors
+    new_feature = rebuilt.save()
+
+    assert new_feature.properties.get("flag") is True
+    assert isinstance(new_feature.properties.get("flag"), bool)
+
+
+def test_properties_float_round_trip(make_feature):
+    """A float value survives a round-trip and stays float (not int-coerced)."""
+    feature = make_feature(properties={"name": "Foo", "color": "#ff0000"})
+
+    body = FeatureSerializer(feature).data
+    body["properties"]["ratio"] = 3.14
+    rebuilt = FeatureSerializer(data=body)
+    assert rebuilt.is_valid(), rebuilt.errors
+    new_feature = rebuilt.save()
+
+    assert new_feature.properties.get("ratio") == 3.14
+    assert isinstance(new_feature.properties.get("ratio"), float)

@@ -36,10 +36,6 @@ function render_property_row(key, value) {
   key_cell.className = "text-muted";
 
   const value_cell = document.createElement("td");
-  value_cell.contentEditable = "true";
-  value_cell.spellcheck = false;
-  value_cell.textContent = value === null || value === undefined ? "" : String(value);
-  value_cell.dataset.original = value_cell.textContent;
 
   const action_cell = document.createElement("td");
   const delete_button = document.createElement("button");
@@ -53,6 +49,38 @@ function render_property_row(key, value) {
   row.appendChild(value_cell);
   row.appendChild(action_cell);
   tbody.appendChild(row);
+
+  if (typeof value === "boolean") {
+    const select = document.createElement("select");
+    select.className = "form-select form-select-sm";
+    for (const option_value of ["true", "false"]) {
+      const option = document.createElement("option");
+      option.value = option_value;
+      option.textContent = option_value;
+      if (String(value) === option_value) option.selected = true;
+      select.appendChild(option);
+    }
+    value_cell.appendChild(select);
+    select.addEventListener("change", async () => {
+      const feature_id = row.closest("aside").dataset.featureId;
+      const next = select.value === "true";
+      try {
+        await api.patch(`/api/features/${feature_id}/`, {
+          properties: { [key]: next },
+        });
+        clear_alert();
+      } catch (error) {
+        show_alert(error?.message || "Save failed.");
+        select.value = String(value);
+      }
+    });
+    return;
+  }
+
+  value_cell.contentEditable = "true";
+  value_cell.spellcheck = false;
+  value_cell.textContent = value === null || value === undefined ? "" : String(value);
+  value_cell.dataset.original = value_cell.textContent;
 
   value_cell.addEventListener("keydown", async (event) => {
     if (event.key === "Enter") {

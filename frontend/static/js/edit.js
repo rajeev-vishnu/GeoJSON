@@ -34,11 +34,6 @@ function render_property_row(feature_id, key, value) {
   key_cell.textContent = key;
   key_cell.className = "text-muted small";
   const value_cell = document.createElement("td");
-  value_cell.contentEditable = "true";
-  value_cell.spellcheck = false;
-  value_cell.textContent = value === null || value === undefined ? "" : String(value);
-  value_cell.dataset.original = value_cell.textContent;
-  value_cell.dataset.type = typeof value;
   const action_cell = document.createElement("td");
   const delete_button = document.createElement("button");
   delete_button.type = "button";
@@ -50,6 +45,38 @@ function render_property_row(feature_id, key, value) {
   row.appendChild(value_cell);
   row.appendChild(action_cell);
   tbody.appendChild(row);
+
+  if (typeof value === "boolean") {
+    const select = document.createElement("select");
+    select.className = "form-select form-select-sm";
+    for (const option_value of ["true", "false"]) {
+      const option = document.createElement("option");
+      option.value = option_value;
+      option.textContent = option_value;
+      if (String(value) === option_value) option.selected = true;
+      select.appendChild(option);
+    }
+    value_cell.appendChild(select);
+    select.addEventListener("change", async () => {
+      const next = select.value === "true";
+      try {
+        await api.patch(`/api/features/${feature_id}/`, {
+          properties: { [key]: next },
+        });
+        clear_alert();
+      } catch (error) {
+        show_alert(error?.message || "Save failed.");
+        select.value = String(value);
+      }
+    });
+    return row;
+  }
+
+  value_cell.contentEditable = "true";
+  value_cell.spellcheck = false;
+  value_cell.textContent = value === null || value === undefined ? "" : String(value);
+  value_cell.dataset.original = value_cell.textContent;
+  value_cell.dataset.type = typeof value;
 
   value_cell.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
@@ -121,7 +148,7 @@ function render_add_new_row(feature_id, parent_tbody) {
   type_cell.appendChild(type_select);
 
   const value_cell = document.createElement("td");
-  const value_input = document.createElement("input");
+  let value_input = document.createElement("input");
   value_input.className = "form-control form-control-sm";
   value_cell.appendChild(value_input);
 
@@ -159,15 +186,15 @@ function render_add_new_row(feature_id, parent_tbody) {
         select.appendChild(option);
       }
       value_input.replaceWith(select);
+      value_input = select;
       value_input.value = "true";
-      value_input.disabled = true;
     } else {
       const input = document.createElement("input");
       input.type = type_select.value === "str" ? "text" : "number";
       if (type_select.value === "float") input.step = "any";
       input.className = "form-control form-control-sm";
       value_input.replaceWith(input);
-      value_input.disabled = false;
+      value_input = input;
     }
   }
   key_input.addEventListener("input", update_save_button);
