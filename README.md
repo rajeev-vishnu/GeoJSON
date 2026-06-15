@@ -37,12 +37,3 @@ docker compose run --rm -e DJANGO_SETTINGS_MODULE=config.settings.test web pytes
 docker compose up -d && node e2e/map-color-style.mjs           # end-to-end browser tests
 docker compose exec web ruff check .                           # run ruff
 ```
-
-## Credentials (dev only)
-
-Postgres credentials (`geojson:geojson`) are hardcoded in
-`docker-compose.yml` — the database only runs on your laptop, so
-security is not a concern there. `DJANGO_SECRET_KEY` and other
-settings live in `.env`, which is generated from `.env.example` on
-the first run. The `.env` file is gitignored. For production, secrets
-are injected by the deploy platform.
