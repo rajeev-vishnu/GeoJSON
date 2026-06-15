@@ -1,23 +1,11 @@
 import { api } from "./api.js";
+import { getCategoryLabel } from "./categories.js";
 
 const DEBOUNCE_MS = 250;
 const LIST_URL = "/api/features/";
-const CATEGORIES_URL = "/api/categories/";
 
-let categories = [];
 let debounce_handle = null;
 let _active_index = -1;
-
-function loadCategories() {
-  api
-    .get(CATEGORIES_URL)
-    .then((values) => {
-      categories = values;
-    })
-    .catch(() => {
-      categories = [];
-    });
-}
 
 function isVisible() {
   const input = document.getElementById("search-input");
@@ -37,10 +25,8 @@ function getColor(properties) {
   return "#cccccc";
 }
 
-function getCategoryLabel(properties) {
-  const category = properties?.category;
-  if (typeof category !== "string" || !category) return null;
-  return category;
+function getBadgeLabel(properties) {
+  return getCategoryLabel(properties?.category);
 }
 
 function closeDropdown() {
@@ -59,7 +45,7 @@ function renderRows(features) {
     const properties = feature.properties || {};
     const name = getName(properties);
     const color = getColor(properties);
-    const category_label = getCategoryLabel(properties);
+    const category_label = getBadgeLabel(properties);
     const geometry_type = feature.geometry?.type || "Unknown";
 
     const row = document.createElement("li");
@@ -132,7 +118,6 @@ function onDocumentClick(event) {
 
 function initSearch() {
   if (!isVisible()) return;
-  loadCategories();
   const input = document.getElementById("search-input");
   input.addEventListener("input", onInput);
   input.addEventListener("keydown", onKeyDown);
@@ -144,4 +129,4 @@ function initSearch() {
 
 initSearch();
 
-export { categories, initSearch };
+export { initSearch };

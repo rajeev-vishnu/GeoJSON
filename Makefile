@@ -1,4 +1,4 @@
-.PHONY: up down migrate seed test lint shell setup precommit-install
+.PHONY: up down migrate seed test test-e2e lint shell setup precommit-install
 
 COMPOSE := docker compose
 
@@ -24,6 +24,10 @@ seed:
 
 test:
 	$(COMPOSE) run --rm -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest
+
+test-e2e:
+	$(COMPOSE) up -d
+	node e2e/map-color-style.mjs
 
 lint:
 	$(COMPOSE) exec web ruff check .

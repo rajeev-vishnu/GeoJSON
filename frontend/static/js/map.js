@@ -23,7 +23,7 @@ function build_ol_map() {
   const map_element = document.getElementById("map");
   if (!map_element || !ol) return null;
   map_state.source = new ol.source.Vector();
-  const layer = new ol.layer.Vector({ source: map_state.source });
+  const layer = new ol.layer.Vector({ source: map_state.source, style: feature_style });
   const view = new ol.View({
     center: ol.proj.fromLonLat([5.2913, 52.1326]),
     zoom: 7,
@@ -32,6 +32,39 @@ function build_ol_map() {
     target: map_element,
     layers: [new ol.layer.Tile({ source: new ol.source.OSM() }), layer],
     view,
+  });
+}
+
+function hex_to_rgba(color, alpha) {
+  if (typeof color !== "string") return color;
+  const match = color.trim().match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+  if (!match) return color;
+  const hex = match[1];
+  const full =
+    hex.length === 3
+      ? hex
+          .split("")
+          .map((ch) => ch + ch)
+          .join("")
+      : hex;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function feature_style(feature) {
+  const ol = window.ol;
+  const properties = feature.get("properties") || {};
+  const color = typeof properties.color === "string" && properties.color ? properties.color : "#888888";
+  return new ol.style.Style({
+    stroke: new ol.style.Stroke({ color, width: 2 }),
+    fill: new ol.style.Fill({ color: hex_to_rgba(color, 0.15) }),
+    image: new ol.style.Circle({
+      radius: 6,
+      fill: new ol.style.Fill({ color }),
+      stroke: new ol.style.Stroke({ color: "#ffffff", width: 1.5 }),
+    }),
   });
 }
 
@@ -122,6 +155,7 @@ function initMap() {
   if (!auth.requireAuth()) return;
   map_state.map = build_ol_map();
   if (!map_state.map) return;
+  window.__geojsonMap = map_state;
   map_state.map.on("moveend", on_moveend);
   map_state.map.on("click", (event) => {
     const hit = map_state.map.forEachFeatureAtPixel(event.pixel, (candidate) => candidate);

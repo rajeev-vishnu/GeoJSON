@@ -17,12 +17,15 @@ input (per the spec §6 validation rules).
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeometryField
 
 from features.models import Feature
+
+_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
 class FeatureSerializer(serializers.ModelSerializer):
@@ -83,6 +86,14 @@ class FeatureSerializer(serializers.ModelSerializer):
             name_value = value["name"]
             if not isinstance(name_value, str) or not name_value:
                 raise serializers.ValidationError({"name": "name must be a non-empty string when present"})
+        if "color" in value:
+            color_value = value["color"]
+            if not isinstance(color_value, str) or not _COLOR_RE.match(color_value):
+                raise serializers.ValidationError({"color": "color must be a #RRGGBB hex string"})
+        if "category" in value and value["category"] is not None:
+            valid_categories = {choice.value for choice in Feature.Category}
+            if value["category"] not in valid_categories:
+                raise serializers.ValidationError({"category": f"category must be one of {sorted(valid_categories)}"})
         return value
 
 

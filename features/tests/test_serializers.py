@@ -134,3 +134,71 @@ def test_name_valid_when_string(make_feature):
         },
     )
     assert serializer.is_valid(), serializer.errors
+
+
+@pytest.mark.parametrize(
+    "bad_color",
+    ["red", "#fff", "#ff00000", "#zzzzzz", "#ff000", "rgb(255,0,0)", 123, None, ""],
+)
+def test_color_must_be_hex_string(make_feature, bad_color):
+    """`color` must match `#RRGGBB`; any other shape rejected with a `color` field error."""
+    feature = make_feature(properties={"name": "Foo", "color": "#ff0000"})
+
+    serializer = FeatureSerializer(
+        instance=feature,
+        data={
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [5.0, 52.0]},
+            "properties": {"color": bad_color},
+        },
+    )
+    assert not serializer.is_valid(), f"expected invalid for color={bad_color!r}"
+    assert "color" in serializer.errors["properties"], (
+        f"expected color field error in properties errors for {bad_color!r}, got {serializer.errors}"
+    )
+
+
+def test_color_accepts_uppercase_hex(make_feature):
+    """`#RRGGBB` regex is case-insensitive; `#AABBCC` accepted."""
+    feature = make_feature(properties={"name": "Foo", "color": "#ff0000"})
+
+    serializer = FeatureSerializer(
+        instance=feature,
+        data={
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [5.0, 52.0]},
+            "properties": {"color": "#AABBCC"},
+        },
+    )
+    assert serializer.is_valid(), serializer.errors
+
+
+def test_category_must_be_in_enum(make_feature):
+    """`category` must be one of `Feature.Category` values, else 400 with `category` field error."""
+    feature = make_feature(properties={"name": "Foo", "color": "#ff0000"})
+
+    serializer = FeatureSerializer(
+        instance=feature,
+        data={
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [5.0, 52.0]},
+            "properties": {"category": "citty"},
+        },
+    )
+    assert not serializer.is_valid()
+    assert "category" in serializer.errors["properties"]
+
+
+def test_category_null_is_accepted(make_feature):
+    """`category: null` is accepted — clears the existing category."""
+    feature = make_feature(properties={"name": "Foo", "color": "#ff0000", "category": "city"})
+
+    serializer = FeatureSerializer(
+        instance=feature,
+        data={
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [5.0, 52.0]},
+            "properties": {"category": None},
+        },
+    )
+    assert serializer.is_valid(), serializer.errors

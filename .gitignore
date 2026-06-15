@@ -34,6 +34,7 @@ coverage.xml
 .coverage.*
 htmlcov/
 .pytest_cache/
+e2e/screenshots/
 
 # ─── Linter / formatter caches ─────────────────────────────────────
 .ruff_cache/

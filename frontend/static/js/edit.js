@@ -1,8 +1,10 @@
 import { api } from "./api.js";
 import { auth } from "./auth.js";
+import { renderCategorySelect } from "./categories.js";
 
 const LIST_URL = "/api/features/";
 const ALLOWED_ORDERING = ["created_at", "-created_at", "updated_at", "-updated_at"];
+const _MISSING_COLOR = "#cccccc";
 
 let current_page = 1;
 let current_ordering = "-updated_at";
@@ -215,21 +217,9 @@ function render_feature(feature) {
   row.dataset.featureId = feature.id;
   row.className = "feature-row";
 
-  const name_cell = document.createElement("td");
-  name_cell.textContent = feature.properties?.name || "(unnamed)";
-  const color_cell = document.createElement("td");
-  const swatch = document.createElement("span");
-  swatch.className = "swatch";
-  swatch.style.background = feature.properties?.color || "#cccccc";
-  color_cell.appendChild(swatch);
-  const category_cell = document.createElement("td");
-  const category_label = feature.properties?.category || "";
-  if (category_label) {
-    const badge = document.createElement("span");
-    badge.className = "badge bg-secondary";
-    badge.textContent = category_label;
-    category_cell.appendChild(badge);
-  }
+  const name_cell = render_name_cell(feature);
+  const color_cell = render_color_cell(feature);
+  const category_cell = render_category_cell(feature);
   const type_cell = document.createElement("td");
   type_cell.textContent = feature.geometry?.type || "";
 
@@ -258,6 +248,110 @@ function render_feature(feature) {
     if (key === "_audit" || key === "name" || key === "color" || key === "category") continue;
     render_property_row(feature.id, key, value);
   }
+}
+
+function render_name_cell(feature) {
+  const cell = document.createElement("td");
+  cell.contentEditable = "true";
+  cell.spellcheck = false;
+  const original = (feature.properties?.name || "").toString();
+  cell.textContent = original || "(unnamed)";
+  cell.dataset.original = original;
+
+  cell.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      cell.blur();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cell.textContent = cell.dataset.original || "(unnamed)";
+      cell.blur();
+    }
+  });
+  cell.addEventListener("blur", async () => {
+    const next = cell.textContent === "(unnamed)" ? "" : cell.textContent;
+    if (next === cell.dataset.original) return;
+    if (!next) {
+      show_alert("Name must be a non-empty string.");
+      cell.textContent = cell.dataset.original || "(unnamed)";
+      return;
+    }
+    try {
+      const updated = await api.patch(`/api/features/${feature.id}/`, {
+        properties: { name: next },
+      });
+      cell.dataset.original = updated.properties?.name ?? next;
+      cell.textContent = cell.dataset.original;
+      clear_alert();
+    } catch (error) {
+      show_alert(error?.message || "Save failed.");
+      cell.textContent = cell.dataset.original || "(unnamed)";
+    }
+  });
+  return cell;
+}
+
+function render_color_cell(feature) {
+  const cell = document.createElement("td");
+  const wrapper = document.createElement("div");
+  wrapper.className = "d-flex align-items-center gap-2";
+  const swatch = document.createElement("span");
+  swatch.className = "swatch";
+  const stored = feature.properties?.color;
+  const fallback = stored && /^#[0-9a-fA-F]{6}$/.test(stored) ? stored : _MISSING_COLOR;
+  swatch.style.background = fallback;
+  const picker = document.createElement("input");
+  picker.type = "color";
+  picker.className = "form-control form-control-color form-control-sm";
+  picker.value = fallback;
+  picker.dataset.original = stored || "";
+  picker.title = "Pick a color";
+  picker.addEventListener("change", async () => {
+    const next = picker.value;
+    if (next === picker.dataset.original) return;
+    try {
+      const updated = await api.patch(`/api/features/${feature.id}/`, {
+        properties: { color: next },
+      });
+      const server_color = updated.properties?.color;
+      swatch.style.background = server_color || next;
+      picker.dataset.original = server_color || next;
+      picker.value = server_color || next;
+      clear_alert();
+    } catch (error) {
+      show_alert(error?.message || "Save failed.");
+      picker.value = picker.dataset.original || _MISSING_COLOR;
+      swatch.style.background = picker.dataset.original || _MISSING_COLOR;
+    }
+  });
+  wrapper.appendChild(swatch);
+  wrapper.appendChild(picker);
+  cell.appendChild(wrapper);
+  return cell;
+}
+
+function render_category_cell(feature) {
+  const cell = document.createElement("td");
+  const select = renderCategorySelect({ current: feature.properties?.category });
+  select.dataset.original = feature.properties?.category || "";
+  select.addEventListener("change", async () => {
+    const next = select.value || null;
+    const original = select.dataset.original || null;
+    if (next === original) return;
+    try {
+      const updated = await api.patch(`/api/features/${feature.id}/`, {
+        properties: { category: next },
+      });
+      select.dataset.original = updated.properties?.category || "";
+      select.value = select.dataset.original;
+      clear_alert();
+    } catch (error) {
+      show_alert(error?.message || "Save failed.");
+      select.value = original || "";
+    }
+  });
+  cell.appendChild(select);
+  return cell;
 }
 
 async function load_page() {

@@ -1,5 +1,5 @@
 import { api } from "./api.js";
-import { categories } from "./search.js";
+import { renderCategorySelect } from "./categories.js";
 
 function open() {
   document.getElementById("panel").classList.add("open");
@@ -113,42 +113,8 @@ function render_category_row(feature) {
   key_cell.className = "text-muted";
 
   const value_cell = document.createElement("td");
-  const select = document.createElement("select");
-  select.className = "form-select form-select-sm";
-  const current = feature.properties?.category || "";
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = "(none)";
-  select.appendChild(placeholder);
-  for (const value of categories) {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = value;
-    select.appendChild(option);
-  }
-  const other = document.createElement("option");
-  other.value = "__other__";
-  other.textContent = "other…";
-  select.appendChild(other);
-  if (current && ![...select.options].some((opt) => opt.value === current)) {
-    const custom = document.createElement("option");
-    custom.value = current;
-    custom.textContent = `${current} (custom)`;
-    select.insertBefore(custom, other);
-  }
-  select.value =
-    current && [...select.options].some((opt) => opt.value === current) ? current : current ? "__other__" : "";
-  if (select.value === "__other__") {
-    const custom_input = document.createElement("input");
-    custom_input.type = "text";
-    custom_input.className = "form-control form-control-sm mt-1";
-    custom_input.value = current && select.querySelector(`option[value="${current}"]`) ? "" : current;
-    custom_input.placeholder = "Custom category";
-    value_cell.appendChild(select);
-    value_cell.appendChild(custom_input);
-  } else {
-    value_cell.appendChild(select);
-  }
+  const select = renderCategorySelect({ current: feature.properties?.category });
+  value_cell.appendChild(select);
 
   const action_cell = document.createElement("td");
 
@@ -157,20 +123,19 @@ function render_category_row(feature) {
   row.appendChild(action_cell);
   tbody.appendChild(row);
 
+  const original = select.value;
   async function commit() {
     const feature_id = row.closest("aside").dataset.featureId;
-    let next = select.value;
-    if (next === "__other__") {
-      next = value_cell.querySelector("input")?.value || "";
-    }
+    const next = select.value || null;
     try {
       const updated = await api.patch(`/api/features/${feature_id}/`, {
-        properties: { category: next || null },
+        properties: { category: next },
       });
       select.value = updated.properties?.category || "";
       clear_alert();
     } catch (error) {
       show_alert(error?.message || "Save failed.");
+      select.value = original;
     }
   }
   select.addEventListener("change", commit);
@@ -180,7 +145,7 @@ function render_category_row(feature) {
       commit();
     } else if (event.key === "Escape") {
       event.preventDefault();
-      select.value = feature.properties?.category || "";
+      select.value = original;
     }
   });
 }
