@@ -74,7 +74,7 @@ per-page bar.
 | `frontend/templates/edit.html` | **MODIFY** | Add per-page search bar (`#edit-search-input`) in the existing top toolbar row alongside the sort dropdown. |
 | `frontend/static/js/search.js` | **REFACTOR** | Reduce to a shared core: `fetchMatches(query)`, `renderDropdownRow(feature, { onClick })`, and a `DEBOUNCE_MS` constant. The existing auto-init `initSearch()` is removed. |
 | `frontend/static/js/search-map.js` | **NEW** | Owns the map page's search bar. Wires input → dropdown → `map:fly-to`. Exports `initMapSearch()`. |
-| `frontend/static/js/search-edit.js` | **NEW** | Owns the edit page's search bar. Wires input → `onChange` callback. Exports `initEditSearch({ onChange })`, `readQuery()`, `lastQuery`. |
+| `frontend/static/js/search-edit.js` | **NEW** | Owns the edit page's search bar. Wires input → `onChange` callback. Exports `initEditSearch({ onChange })` and `readQuery()`. |
 | `frontend/static/js/map.js` | **MODIFY** | Add `import { initMapSearch } from "./search-map.js";` and call `initMapSearch()` inside `initMap()`. |
 | `frontend/static/js/edit.js` | **MODIFY** | Add `import { initEditSearch } from "./search-edit.js";`; call `initEditSearch({ onChange: load_page })`; adjust `load_page` to read the current search value and thread it into the URL. |
 | `frontend/static/css/site.css` | **MODIFY** | Replace `#search-input` / `.search-dropdown` rules with `#map-search-input` / `#edit-search-input` and `#map-search-dropdown`. Net line count unchanged. |
@@ -238,7 +238,6 @@ Component in `frontend/static/js/search-edit.js`:
 import { DEBOUNCE_MS, fetchMatches } from "./search.js";
 
 let debounce_handle = null;
-let _last_query = "";
 
 function readQuery() {
   const input = document.getElementById("edit-search-input");
@@ -248,7 +247,6 @@ function readQuery() {
 function onInput(event, { onChange }) {
   if (debounce_handle) clearTimeout(debounce_handle);
   const query = event.target.value.trim();
-  _last_query = query;
   debounce_handle = setTimeout(() => onChange({ search: query }), DEBOUNCE_MS);
 }
 
@@ -442,7 +440,7 @@ class-based, used by the map dropdown.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│ [ Search by name... ▾ ]                              [Point] [Line] … │
+│ [ Search by name...     ]                              [Point] [Line] … │
 │ [ Groningen                Polygon  Province  ]                      │
 │ [ ...results...             ]                                        │
 │                                                                      │
