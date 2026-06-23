@@ -116,6 +116,10 @@ def test_test_settings_module_inherits_base() -> None:
 def test_prod_settings_applies_security_table() -> None:
     """prod.py enables the full security table from Foundation spec §9."""
     os.environ["DJANGO_SECRET_KEY"] = "this-is-a-real-production-secret-not-the-placeholder"
+    # Reload base so its module-level `os.environ.get(...)` picks up the
+    # real secret; otherwise prod.py's `from .base import *` would see the
+    # placeholder cached by the test runner's conftest and refuse to import.
+    _reload_settings("config.settings.base")
     prod = _reload_settings("config.settings.prod")
 
     assert prod.DEBUG is False
@@ -134,6 +138,7 @@ def test_prod_settings_applies_security_table() -> None:
 def test_prod_settings_registers_csp_middleware_with_policy() -> None:
     """prod.py wires SecurityHeadersMiddleware with the documented CSP string."""
     os.environ["DJANGO_SECRET_KEY"] = "this-is-a-real-production-secret-not-the-placeholder"
+    _reload_settings("config.settings.base")
     prod = _reload_settings("config.settings.prod")
 
     assert "config.middleware.SecurityHeadersMiddleware" in prod.MIDDLEWARE

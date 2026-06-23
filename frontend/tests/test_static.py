@@ -101,6 +101,42 @@ def test_map_import_js_exports_init_import_export() -> None:
     assert "initImportExport" in body
 
 
+def test_map_import_js_does_not_use_openlayers_to_read_the_input_file() -> None:
+    """The `import_file` flow posts each GeoJSON feature straight to the API.
+
+    Locked in after a bug where `ol.format.GeoJSON().readFeatures(...)`
+    flattened each feature's `properties` onto the OL feature, then
+    `ol_feature.get("properties")` returned `undefined`, so every
+    imported row was saved with empty properties.
+
+    The import function may still use `ol.format.GeoJSON` to convert
+    the *server response* into an `ol.Feature` for the map — that path
+    doesn't read the user's file. The `export_features` function in
+    the same file may still use OL — this assertion is scoped to the
+    import flow.
+    """
+    import re
+
+    body = _read_static("js/map-import.js")
+    match = re.search(r"async\s+function\s+import_file\s*\([^)]*\)\s*\{", body)
+    assert match is not None, "could not locate import_file in map-import.js"
+    start = match.end() - 1
+    depth = 0
+    for index in range(start, len(body)):
+        char = body[index]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                import_body = body[start + 1 : index]
+                break
+    else:
+        raise AssertionError("unterminated import_file in map-import.js")
+    assert "readFeatures" not in import_body, "import_file still calls readFeatures on the input file"
+    assert "writeGeometryObject" not in import_body, "import_file still re-projects geometry"
+
+
 def test_map_panel_js_exports_init_panel() -> None:
     """`map-panel.js` exports an `initPanel` initializer."""
     body = _read_static("js/map-panel.js")

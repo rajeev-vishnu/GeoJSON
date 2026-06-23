@@ -2,8 +2,6 @@ import { api } from "./api.js";
 
 const FEATURES_URL = "/api/features/";
 
-let import_layer = null;
-
 function read_file(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -13,48 +11,66 @@ function read_file(file) {
   });
 }
 
+function collect_features(collection) {
+  if (collection?.type === "FeatureCollection" && Array.isArray(collection.features)) {
+    return collection.features;
+  }
+  if (collection?.type === "Feature") {
+    return [collection];
+  }
+  return [];
+}
+
+function show_import_status(imported, failed) {
+  const status = document.getElementById("import-status");
+  if (!status) return;
+  status.textContent = `Imported ${imported} of ${imported + failed}; ${failed} failed.`;
+  status.classList.remove("d-none", "alert-success", "alert-danger", "alert-warning");
+  if (failed === 0) {
+    status.classList.add("alert-success");
+  } else if (imported === 0) {
+    status.classList.add("alert-danger");
+  } else {
+    status.classList.add("alert-warning");
+  }
+}
+
 async function import_file(state) {
-  const ol = window.ol;
   const file_input = document.getElementById("import-file-input");
   if (!file_input.files?.[0]) return;
   const text = await read_file(file_input.files[0]);
   const collection = JSON.parse(text);
-  if (import_layer) state.map.removeLayer(import_layer);
-  import_layer = new ol.layer.Vector({ source: new ol.source.Vector() });
-  const format = new ol.format.GeoJSON();
-  const features = format.readFeatures(collection, { featureProjection: "EPSG:3857", dataProjection: "EPSG:4326" });
-  import_layer.getSource().addFeatures(features);
-  state.map.addLayer(import_layer);
+  const features = collect_features(collection);
 
-  if (!window.confirm(`Import ${features.length} features to the server?`)) {
-    state.map.removeLayer(import_layer);
-    import_layer = null;
-    return;
-  }
-
-  const writer = new ol.format.GeoJSON();
-  for (const ol_feature of features) {
-    const geometry = writer.writeGeometryObject(ol_feature.getGeometry(), {
-      featureProjection: "EPSG:3857",
-      dataProjection: "EPSG:4326",
-    });
-    const properties = ol_feature.get("properties") || {};
+  const ol = window.ol;
+  const format = ol ? new ol.format.GeoJSON() : null;
+  let imported = 0;
+  let failed = 0;
+  for (const feature of features) {
+    const body = {
+      type: "Feature",
+      geometry: feature.geometry,
+      properties: feature.properties ?? {},
+    };
     try {
-      const created = await api.post(FEATURES_URL, {
-        type: "Feature",
-        geometry,
-        properties,
-      });
-      const saved_feature = new ol.format.GeoJSON().readFeature(created);
-      saved_feature.set("feature_id", created.id);
-      saved_feature.set("properties", created.properties);
-      state.source.addFeature(saved_feature);
-    } catch (_error) {
-      // continue with remaining features
+      const created = await api.post(FEATURES_URL, body);
+      if (state?.source && created) {
+        const saved_feature = format
+          ? format.readFeature(created, { featureProjection: "EPSG:3857" })
+          : { feature_id: created.id, properties: created.properties, geometry: created.geometry };
+        saved_feature.set("feature_id", created.id);
+        saved_feature.set("properties", created.properties);
+        state.source.addFeature(saved_feature);
+      }
+      imported += 1;
+    } catch (error) {
+      failed += 1;
+      console.error("Import failed for feature", feature, error);
     }
   }
-  state.map.removeLayer(import_layer);
-  import_layer = null;
+  console.info(`Imported ${imported} feature(s); ${failed} failed.`);
+  show_import_status(imported, failed);
+  window.dispatchEvent(new CustomEvent("map:reload"));
   file_input.value = "";
 }
 
@@ -89,8 +105,8 @@ function initImportExport(state) {
     document.getElementById("import-file-input").click();
   });
   document.getElementById("import-file-input")?.addEventListener("change", () => {
-    import_file(state).catch(() => {
-      // ignore: file picker stays available
+    import_file(state).catch((error) => {
+      console.error("Import flow failed:", error);
     });
   });
   document.getElementById("export-button")?.addEventListener("click", () => export_features(state));

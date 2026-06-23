@@ -1,0 +1,202 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [-4.79, 48.40], [-1.51, 48.71], [-1.79, 49.72], [0.34, 49.43],
+              [1.45, 50.97], [3.18, 50.78], [4.13, 50.36], [5.78, 50.32],
+              [6.41, 49.46], [6.91, 49.20], [7.62, 48.32], [7.45, 47.59],
+              [7.59, 46.86], [6.85, 46.32], [6.39, 45.86], [6.84, 45.34],
+              [7.10, 44.22], [7.71, 43.78], [7.52, 43.30], [6.04, 43.13],
+              [4.84, 43.05], [3.06, 42.43], [1.45, 42.39], [-0.31, 42.83],
+              [-1.79, 43.41], [-1.50, 44.10], [-1.20, 44.65], [-1.81, 45.61],
+              [-1.30, 46.16], [-2.61, 47.30], [-3.30, 47.75], [-4.49, 47.78],
+              [-4.79, 48.40]
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "France",
+        "category": "country",
+        "color": "#21468B"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2.20, 48.65], [3.20, 48.95], [3.20, 49.20], [2.80, 49.30],
+            [2.20, 49.10], [1.85, 48.90], [2.05, 48.70], [2.20, 48.65]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Île-de-France",
+        "category": "province",
+        "color": "#984ea3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [4.50, 44.80], [5.50, 45.10], [6.40, 45.10], [6.80, 44.50],
+            [6.80, 43.80], [6.10, 43.40], [5.20, 43.50], [4.50, 43.90],
+            [4.20, 44.30], [4.50, 44.80]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Provence-Alpes-Côte d'Azur",
+        "category": "province",
+        "color": "#984ea3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [3.50, 45.20], [4.70, 45.70], [5.20, 46.10], [4.80, 46.40],
+            [3.80, 46.10], [3.10, 45.60], [3.20, 45.20], [3.50, 45.20]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Auvergne-Rhône-Alpes",
+        "category": "province",
+        "color": "#984ea3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-1.80, 47.20], [-0.50, 47.80], [0.50, 47.50], [0.80, 46.80],
+            [0.20, 46.30], [-0.80, 46.10], [-1.50, 46.50], [-1.80, 47.20]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Pays de la Loire",
+        "category": "province",
+        "color": "#984ea3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [4.80, 45.20], [4.00, 45.50], [3.20, 45.80], [2.50, 46.30],
+          [1.60, 46.80], [0.80, 47.20], [0.10, 47.40], [-0.70, 47.30]
+        ]
+      },
+      "properties": {
+        "name": "Loire",
+        "category": "river",
+        "color": "#377eb8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [7.50, 48.30], [6.20, 47.70], [5.20, 47.10], [4.80, 46.50],
+          [4.40, 45.80], [4.10, 45.40], [3.80, 45.00], [3.40, 44.50],
+          [2.80, 43.80], [2.40, 43.30]
+        ]
+      },
+      "properties": {
+        "name": "Rhône",
+        "category": "river",
+        "color": "#377eb8"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.35, 48.86], [2.55, 48.50], [3.05, 47.80], [3.55, 47.10],
+          [4.05, 46.50], [4.55, 45.95], [4.85, 45.76]
+        ]
+      },
+      "properties": {
+        "name": "A6 autoroute",
+        "category": "road",
+        "color": "#ff7f00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [4.83, 45.76], [5.20, 45.40], [5.55, 45.05], [5.78, 44.70],
+          [5.85, 44.20], [5.65, 43.80], [5.45, 43.50], [5.37, 43.30]
+        ]
+      },
+      "properties": {
+        "name": "A7 autoroute",
+        "category": "road",
+        "color": "#ff7f00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [4.65, 45.85], [5.10, 45.95], [5.30, 45.65], [5.05, 45.50],
+            [4.65, 45.55], [4.65, 45.85]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Parc naturel régional du Pilat",
+        "category": "nature_reserve",
+        "color": "#005500"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.3522, 48.8566]
+      },
+      "properties": {
+        "name": "Paris",
+        "category": "city",
+        "color": "#e41a1c"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.8320, 45.7640]
+      },
+      "properties": {
+        "name": "Lyon",
+        "category": "city",
+        "color": "#e41a1c"
+      }
+    }
+  ]
+}
